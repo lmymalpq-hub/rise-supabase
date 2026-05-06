@@ -1,0 +1,31 @@
+# Supabase config — RISE
+# https://supabase.com/docs/guides/cli/config
+
+project_id = "rise-supabase"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[storage]
+enabled = true
+file_size_limit = "12MiB"
+
+[auth]
+enabled = false  # auth PIN custom via Edge Function, pas Supabase Auth
+
+[edge_runtime]
+enabled = true
+inspector_port = 8083
