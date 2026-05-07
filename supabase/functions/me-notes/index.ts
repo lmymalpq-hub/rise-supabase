@@ -70,10 +70,13 @@ Deno.serve(async (req) => {
       } catch {
         annotations = [];
       }
-      // Sign URL pour servir la photo au client (bucket privé)
+      // Signed URL avec resize → thumbnail léger pour la liste des notes
+      // (full-res peut être obtenue séparément si besoin via /storage/v1/object/sign)
       const { data: signed } = await adminClient.storage
         .from(UPLOADS_BUCKET)
-        .createSignedUrl(ck.photo_path, SIGNED_URL_TTL);
+        .createSignedUrl(ck.photo_path, SIGNED_URL_TTL, {
+          transform: { width: 800, quality: 80, resize: "contain" },
+        });
       signed_url = signed?.signedUrl || null;
     }
 

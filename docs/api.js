@@ -53,6 +53,35 @@
     return body;
   }
 
+  // Compression client avant upload : redimensionne via canvas en JPEG
+  // max 1280px (côté le plus long) à qualité 0.85. Évite que les photos
+  // de 3 MB du téléphone soient envoyées telles quelles au backend.
+  async function compressImage(file, maxDim = 1280, quality = 0.85) {
+    if (!file || !file.type || !file.type.startsWith("image/")) return file;
+    try {
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      await img.decode();
+      const ratio = Math.min(1, maxDim / Math.max(img.width, img.height));
+      const w = Math.round(img.width * ratio);
+      const h = Math.round(img.height * ratio);
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, w, h);
+      const blob = await new Promise(res => canvas.toBlob(res, "image/jpeg", quality));
+      URL.revokeObjectURL(img.src);
+      if (!blob) return file;
+      // Si la compression est moins bonne que l'original, garde l'original
+      if (blob.size > file.size) return file;
+      return new File([blob], (file.name || "photo.jpg").replace(/\.[^.]+$/, "") + ".jpg",
+                       { type: "image/jpeg" });
+    } catch (e) {
+      console.warn("compressImage failed, falling back to original", e);
+      return file;
+    }
+  }
+
   const api = {
     getToken,
     setToken,
@@ -78,12 +107,14 @@
     },
 
     async upload({ pdv, category, photoFile, note, stepId }) {
+      // Compression côté client (Sprint TS-17b) : 3 MB → ~250 KB
+      const compressed = await compressImage(photoFile);
       const fd = new FormData();
       fd.append("pdv", pdv);
       fd.append("category", category);
       if (note) fd.append("note", note);
       if (stepId != null) fd.append("step_id", String(stepId));
-      fd.append("photo", photoFile, "photo.jpg");
+      fd.append("photo", compressed, "photo.jpg");
       const r = await fetch(FN_BASE + "/upload", {
         method: "POST",
         headers: authedHeaders(),
@@ -91,6 +122,8 @@
       });
       return jsonOrThrow(r);
     },
+
+    compressImage,
 
     async getSequence(pdv, category) {
       const qs = new URLSearchParams({ pdv, category });

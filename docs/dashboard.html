@@ -558,7 +558,8 @@
   function openCheckinModal(c) {
     currentCheckin = c;
     $("ck-title").textContent = (STATIONS.pdv[c.pdv] || c.pdv) + " · " + (STATIONS.categories[c.category] || c.category);
-    $("ck-photo").src = c.photo_signed_url || "";
+    // Modale détail : utilise la full-res (1600px q88) si dispo, sinon le thumbnail
+    $("ck-photo").src = c.photo_full_url || c.photo_signed_url || "";
     $("ck-meta").innerHTML = `
       <b>${escapeHtml(c.user_label || '?')}</b> · ${fmtDate(c.created_at)} · status: ${escapeHtml(c.status)}
     `;

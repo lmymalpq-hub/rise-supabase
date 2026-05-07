@@ -49,15 +49,25 @@ Deno.serve(async (req) => {
   const { data: rows, error } = await q;
   if (error) return jsonResponse(500, { error: `DB query failed: ${error.message}` });
 
-  // Sign URLs for private bucket
+  // 2 signed URLs : thumbnail (400px JPEG q75 ~30 KB) pour la grille, full-res
+  // (q90, no resize) pour la modale détail.
   const out = [];
   for (const r of rows || []) {
-    let signed: string | null = null;
+    let thumb: string | null = null;
+    let full: string | null = null;
     if (r.photo_path) {
-      const { data: s } = await adminClient.storage.from(UPLOADS_BUCKET).createSignedUrl(r.photo_path, SIGNED_URL_TTL);
-      signed = s?.signedUrl ?? null;
+      const { data: t } = await adminClient.storage.from(UPLOADS_BUCKET)
+        .createSignedUrl(r.photo_path, SIGNED_URL_TTL, {
+          transform: { width: 400, height: 300, resize: "cover", quality: 75 },
+        });
+      thumb = t?.signedUrl ?? null;
+      const { data: f } = await adminClient.storage.from(UPLOADS_BUCKET)
+        .createSignedUrl(r.photo_path, SIGNED_URL_TTL, {
+          transform: { width: 1600, quality: 88, resize: "contain" },
+        });
+      full = f?.signedUrl ?? null;
     }
-    out.push({ ...r, photo_signed_url: signed });
+    out.push({ ...r, photo_signed_url: thumb, photo_full_url: full });
   }
 
   return jsonResponse(200, { checkins: out, count: out.length });
