@@ -76,6 +76,8 @@ Deno.serve(async (req) => {
   const pdv = (form.get("pdv") as string | null)?.trim() || "";
   const category = (form.get("category") as string | null)?.trim() || "";
   const note = (form.get("note") as string | null)?.trim() || null;
+  const stepIdRaw = (form.get("step_id") as string | null)?.trim();
+  const stepId = stepIdRaw && /^\d+$/.test(stepIdRaw) ? parseInt(stepIdRaw, 10) : null;
   const photo = form.get("photo");
 
   if (!ALLOWED_PDVS.has(pdv)) {
@@ -118,6 +120,7 @@ Deno.serve(async (req) => {
       staff_id: staff.id,
       user_label: staff.name,
       status: "ok",
+      step_id: stepId,
     })
     .select("id, created_at")
     .single();

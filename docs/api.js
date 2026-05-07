@@ -77,17 +77,24 @@
       setStaff(null);
     },
 
-    async upload({ pdv, category, photoFile, note }) {
+    async upload({ pdv, category, photoFile, note, stepId }) {
       const fd = new FormData();
       fd.append("pdv", pdv);
       fd.append("category", category);
       if (note) fd.append("note", note);
+      if (stepId != null) fd.append("step_id", String(stepId));
       fd.append("photo", photoFile, "photo.jpg");
       const r = await fetch(FN_BASE + "/upload", {
         method: "POST",
-        headers: authedHeaders(), // pas de Content-Type, le browser pose le boundary
+        headers: authedHeaders(),
         body: fd,
       });
+      return jsonOrThrow(r);
+    },
+
+    async getSequence(pdv, category) {
+      const qs = new URLSearchParams({ pdv, category });
+      const r = await fetch(FN_BASE + "/sequences-get?" + qs, { headers: authedHeaders() });
       return jsonOrThrow(r);
     },
 

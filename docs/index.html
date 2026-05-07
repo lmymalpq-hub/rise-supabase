@@ -282,6 +282,56 @@
   .empty-state .title { font-family: Georgia, serif; font-size: 22px; }
   .empty-state .sub { color: var(--text-muted); font-size: 13px; }
 
+  /* Sprint TS-15 — Wizard sequences */
+  .wizard-banner {
+    width: 100%; padding: 14px 16px; margin-bottom: 14px;
+    background: linear-gradient(135deg, #fff8ec 0%, var(--accent-soft) 100%);
+    border: 1.5px solid var(--accent); border-radius: 12px;
+    box-shadow: var(--shadow);
+  }
+  .wizard-title {
+    font-size: 14px; font-weight: 700; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+  }
+  .wizard-subtitle { font-size: 13px; color: var(--text); margin-bottom: 12px; }
+  .wizard-progress {
+    height: 6px; background: var(--surface); border-radius: 999px;
+    overflow: hidden; margin-bottom: 14px;
+  }
+  .wizard-progress-fill {
+    height: 100%; background: var(--accent); transition: width 0.3s;
+  }
+  .step-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px;
+    margin-bottom: 6px; cursor: pointer;
+    transition: all 0.12s;
+  }
+  .step-row:active { transform: scale(0.99); }
+  .step-row.done { background: #f0f7ec; border-color: var(--success); opacity: 0.85; }
+  .step-row.active { border-color: var(--accent); border-width: 2px; }
+  .step-row .check {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 2px solid var(--border); display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0; font-size: 14px; color: #fff;
+  }
+  .step-row.done .check { background: var(--success); border-color: var(--success); }
+  .step-row.done .check::before { content: "✓"; }
+  .step-row .step-info { flex: 1; }
+  .step-row .step-name { font-size: 14px; font-weight: 600; }
+  .step-row .step-hint { font-size: 11px; color: var(--text-muted); }
+  .step-row .step-optional {
+    font-size: 10px; color: var(--text-muted); font-style: italic;
+    margin-left: 8px;
+  }
+  .wizard-quit {
+    width: 100%; margin-top: 8px; padding: 10px;
+    background: transparent; border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text-muted); font-size: 12px;
+    cursor: pointer;
+  }
+
   /* Hidden file inputs */
   input[type=file] { display: none; }
 
@@ -339,6 +389,15 @@
 
     <div class="pdv-row" id="pdv-row"></div>
     <div class="cat-grid" id="cat-grid"></div>
+
+    <!-- Wizard mode — visible quand la cat sélectionnée a une séquence active -->
+    <div id="wizard-banner" class="wizard-banner hidden">
+      <div class="wizard-title">📋 Mode guidé</div>
+      <div class="wizard-subtitle" id="wizard-subtitle">—</div>
+      <div class="wizard-progress"><div class="wizard-progress-fill" id="wizard-progress-fill" style="width:0%"></div></div>
+      <div id="wizard-steps-list"></div>
+      <button class="wizard-quit" id="wizard-quit">Quitter le mode guidé (et passer en mode libre)</button>
+    </div>
 
     <button id="preview-cta" class="preview-cta" aria-disabled="true">
       <span class="cam-emoji">📷</span>
@@ -432,6 +491,11 @@
   let selectedCat = null;
   let pendingPhotoFile = null;
   let myNotesCache = [];
+  // Sprint TS-15 — wizard mode
+  let currentSequence = null;   // {id, title}
+  let currentSteps = [];         // [{id, name, hint, optional, ...}]
+  let currentStepIdx = 0;        // index dans currentSteps
+  let stepsDone = {};            // step_id -> true
 
   // -------- LOGIN --------
   function renderDots() {
@@ -529,12 +593,86 @@
       cta.setAttribute("aria-disabled", "false");
       const pdvLabel = STATIONS.pdv[selectedPdv]?.replace('Le Pain Quotidien ', '');
       $("cta-hint").textContent = `${pdvLabel} · ${STATIONS.categories[selectedCat]}`;
+      // Sprint TS-15 — Vérifie si la combinaison a une séquence wizard active
+      loadSequence(selectedPdv, selectedCat);
     } else {
       cta.classList.remove("ready");
       cta.setAttribute("aria-disabled", "true");
       $("cta-hint").textContent = "Choisis d'abord un restaurant et un type";
+      hideWizard();
     }
   }
+
+  // Sprint TS-15 — Wizard sequences
+  async function loadSequence(pdv, category) {
+    try {
+      const r = await RiseAPI.getSequence(pdv, category);
+      if (r.sequence && r.steps && r.steps.length > 0) {
+        showWizard(r.sequence, r.steps);
+      } else {
+        hideWizard();
+      }
+    } catch (e) {
+      console.warn("loadSequence failed", e);
+      hideWizard();
+    }
+  }
+  function showWizard(seq, steps) {
+    currentSequence = seq;
+    currentSteps = steps;
+    stepsDone = {};
+    $("wizard-banner").classList.remove("hidden");
+    $("wizard-subtitle").textContent = seq.title;
+    $("preview-cta").classList.add("hidden");
+    renderWizardSteps();
+  }
+  function hideWizard() {
+    currentSequence = null;
+    currentSteps = [];
+    stepsDone = {};
+    $("wizard-banner").classList.add("hidden");
+    $("preview-cta").classList.remove("hidden");
+  }
+  function renderWizardSteps() {
+    const list = $("wizard-steps-list");
+    list.innerHTML = "";
+    let doneCount = 0;
+    let totalRequired = 0;
+    currentSteps.forEach((s, i) => {
+      const isDone = !!stepsDone[s.id];
+      if (!s.optional) totalRequired++;
+      if (isDone) doneCount++;
+      const row = document.createElement("div");
+      row.className = "step-row" + (isDone ? " done" : "");
+      row.innerHTML = `
+        <span class="check"></span>
+        <div class="step-info">
+          <div class="step-name">${i+1}. ${escapeHtml(s.name)}${s.optional ? '<span class="step-optional">(optionnel)</span>' : ''}</div>
+          ${s.hint ? `<div class="step-hint">${escapeHtml(s.hint)}</div>` : ''}
+        </div>
+      `;
+      row.addEventListener("click", () => takePhotoForStep(s));
+      list.appendChild(row);
+    });
+    // Progress bar : % des étapes obligatoires complètes
+    const pct = totalRequired > 0
+      ? Math.round((Object.keys(stepsDone).filter(id => {
+          const step = currentSteps.find(x => String(x.id) === String(id));
+          return step && !step.optional;
+        }).length / totalRequired) * 100)
+      : 100;
+    $("wizard-progress-fill").style.width = pct + "%";
+  }
+
+  let pendingStepId = null;  // step en cours pour le prochain upload
+  function takePhotoForStep(step) {
+    pendingStepId = step.id;
+    $("file-input").click();
+  }
+  $("wizard-quit").addEventListener("click", () => {
+    hideWizard();
+    toast("Mode libre activé");
+  });
 
   $("preview-cta").addEventListener('click', () => {
     if ($("preview-cta").getAttribute("aria-disabled") === "true") return;
@@ -552,22 +690,30 @@
     $("preview-cta").classList.add("hidden");
     $("pdv-row").classList.add("hidden");
     $("cat-grid").classList.add("hidden");
+    $("wizard-banner").classList.add("hidden");
     const bv = $("batch-view");
     bv.classList.remove("hidden");
     const pdvLabel = STATIONS.pdv[selectedPdv];
     const catLabel = STATIONS.categories[selectedCat];
-    $("batch-summary").innerHTML = `<b>1 photo</b> · ${escapeHtml(pdvLabel)} · ${escapeHtml(catLabel)}`;
+    let stepLabel = "";
+    if (pendingStepId) {
+      const step = currentSteps.find(s => s.id === pendingStepId);
+      if (step) stepLabel = ` · étape "${step.name}"`;
+    }
+    $("batch-summary").innerHTML = `<b>1 photo</b> · ${escapeHtml(pdvLabel)} · ${escapeHtml(catLabel)}${escapeHtml(stepLabel)}`;
     const url = URL.createObjectURL(pendingPhotoFile);
     $("batch-thumb").style.backgroundImage = `url(${url})`;
   }
 
   $("batch-cancel").addEventListener('click', () => {
     pendingPhotoFile = null;
+    pendingStepId = null;
     $("file-input").value = "";
     $("batch-view").classList.add("hidden");
-    $("preview-cta").classList.remove("hidden");
+    if (!currentSequence) $("preview-cta").classList.remove("hidden");
     $("pdv-row").classList.remove("hidden");
     $("cat-grid").classList.remove("hidden");
+    if (currentSequence) $("wizard-banner").classList.remove("hidden");
   });
 
   $("batch-send").addEventListener('click', async () => {
@@ -575,15 +721,30 @@
     $("batch-send").disabled = true;
     $("batch-send").textContent = "Envoi...";
     try {
-      await RiseAPI.upload({ pdv: selectedPdv, category: selectedCat, photoFile: pendingPhotoFile });
-      toast("Envoyé ✓", "success");
+      // Sprint TS-15 — passe step_id si on est en wizard mode
+      const stepId = pendingStepId;
+      await RiseAPI.upload({ pdv: selectedPdv, category: selectedCat, photoFile: pendingPhotoFile, stepId });
+      // Mark step as done
+      if (stepId) {
+        stepsDone[stepId] = true;
+        renderWizardSteps();
+        const remaining = currentSteps.filter(s => !s.optional && !stepsDone[s.id]).length;
+        toast(remaining > 0
+          ? `Envoyé ✓ — ${remaining} étape${remaining > 1 ? 's' : ''} obligatoire${remaining > 1 ? 's' : ''} restante${remaining > 1 ? 's' : ''}`
+          : "Bravo, séquence terminée 🎉", "success");
+      } else {
+        toast("Envoyé ✓", "success");
+      }
+      pendingStepId = null;
       // Reset
       pendingPhotoFile = null;
       $("file-input").value = "";
       $("batch-view").classList.add("hidden");
-      $("preview-cta").classList.remove("hidden");
+      // Si on est en wizard mode, on ne ré-affiche pas preview-cta
+      if (!currentSequence) $("preview-cta").classList.remove("hidden");
       $("pdv-row").classList.remove("hidden");
       $("cat-grid").classList.remove("hidden");
+      if (currentSequence) $("wizard-banner").classList.remove("hidden");
       $("batch-send").disabled = false;
       $("batch-send").textContent = "Envoyer";
     } catch (e) {
