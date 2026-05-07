@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fbf5ea">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Rise">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<title>Rise · LPQ</title>
+<style>
+  :root {
+    --bg: #fbf5ea;
+    --surface: #ffffff;
+    --surface-soft: #f5ede0;
+    --border: #e0d5c5;
+    --text: #2c1810;
+    --text-muted: #6b5b4c;
+    --accent: #8b4513;
+    --accent-soft: #fef3e2;
+    --success: #5d8c4f;
+    --error: #b8493b;
+    --shadow: 0 1px 2px rgba(44,24,16,0.06), 0 2px 6px rgba(44,24,16,0.04);
+    --note-positive-bg: #f0f7ec;
+    --note-positive-edge: #5d8c4f;
+    --note-neutral-bg: #fdf6e8;
+    --note-neutral-edge: #c9a961;
+    --note-improve-bg: #fdf0ec;
+    --note-improve-edge: #c8654a;
+    --note-photo-bg: #fef3e2;
+    --note-photo-edge: #8b4513;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; min-height: 100dvh; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    display: flex; flex-direction: column;
+    padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+  }
+  .hidden { display: none !important; }
+
+  /* Header */
+  header.bar {
+    padding: 14px 0 12px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  header.bar h1 { margin: 0; font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  header.bar .arrow { color: var(--accent); font-size: 22px; }
+  header.bar .user { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+  .pill { padding: 2px 8px; border-radius: 999px; background: var(--surface-soft); font-size: 11px; }
+  .logout-btn {
+    background: transparent; border: 1px solid var(--border); border-radius: 8px;
+    padding: 4px 10px; font-size: 12px; color: var(--text-muted); cursor: pointer;
+  }
+
+  /* LOGIN */
+  #view-login {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 8px;
+  }
+  #view-login .logo {
+    font-family: Georgia, serif; font-size: 56px; font-weight: bold;
+    display: flex; align-items: baseline; gap: 4px;
+  }
+  #view-login .logo .arrow { color: var(--accent); }
+  #view-login .tag { font-style: italic; color: var(--text-muted); font-size: 14px; margin-bottom: 32px; }
+  #view-login .prompt { font-size: 14px; margin-bottom: 16px; }
+  #view-login .dots {
+    display: flex; gap: 10px; margin-bottom: 24px;
+  }
+  #view-login .dots .dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 1.5px solid var(--border); background: transparent;
+    transition: all 0.15s;
+  }
+  #view-login .dots .dot.filled { background: var(--accent); border-color: var(--accent); }
+  #view-login .pad {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    width: 100%; max-width: 320px;
+  }
+  #view-login .key {
+    aspect-ratio: 1.4/1; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 14px;
+    font-size: 26px; font-weight: 500; color: var(--text);
+    cursor: pointer; box-shadow: var(--shadow);
+    transition: transform 0.08s ease;
+  }
+  #view-login .key:active { transform: scale(0.96); }
+  #view-login .key.action {
+    font-size: 14px; background: transparent; box-shadow: none; color: var(--text-muted);
+  }
+  #view-login .key.submit { background: var(--accent); color: #fff; border-color: var(--accent); }
+  #view-login .err {
+    color: var(--error); font-size: 13px; min-height: 18px; margin-top: 12px;
+  }
+
+  /* MAIN VIEW (capture) */
+  #view-main { flex: 1; padding-top: 8px; }
+  .notes-banner {
+    width: 100%; padding: 12px 14px; margin-bottom: 12px;
+    background: var(--accent-soft); border: 1.5px solid var(--accent);
+    border-radius: 12px; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    box-shadow: var(--shadow);
+  }
+  .notes-banner .icon { font-size: 22px; }
+  .notes-banner .txt b { color: var(--accent); display: block; font-size: 14px; }
+  .notes-banner .txt span { color: var(--text-muted); font-size: 12px; }
+  .notes-banner:active { transform: scale(0.99); }
+  .notes-banner.hidden { display: none; }
+
+  .pdv-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .pdv-btn, .cat-btn {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 12px; cursor: pointer; display: flex;
+    flex-direction: column; align-items: center; gap: 6px;
+    transition: all 0.12s;
+  }
+  .pdv-btn:active, .cat-btn:active { transform: scale(0.98); }
+  .pdv-btn.active, .cat-btn.active {
+    border-color: var(--accent); background: var(--accent-soft); border-width: 2px;
+  }
+  .pdv-emoji, .cat-emoji { font-size: 24px; }
+  .pdv-label, .cat-label { font-size: 13px; font-weight: 600; }
+  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .cat-btn { padding: 18px 10px; opacity: 0.55; }
+  .cat-btn.enabled { opacity: 1; }
+  .cat-btn.active { opacity: 1; }
+
+  .preview-cta {
+    width: 100%; padding: 32px 14px; background: var(--surface);
+    border: 2px dashed var(--border); border-radius: 14px;
+    cursor: pointer; display: flex; flex-direction: column;
+    align-items: center; gap: 8px; margin-bottom: 14px;
+    transition: all 0.12s;
+  }
+  .preview-cta.ready { border-style: solid; border-color: var(--accent); background: var(--accent-soft); }
+  .preview-cta:active { transform: scale(0.99); }
+  .preview-cta[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; }
+  .preview-cta .cam-emoji { font-size: 42px; }
+  .preview-cta .cam-title { font-weight: 700; font-size: 16px; }
+  .preview-cta .cam-hint { font-size: 12px; color: var(--text-muted); text-align: center; }
+
+  /* Batch view (after photo taken) */
+  .batch-view { padding-top: 8px; }
+  .batch-summary { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+  .batch-summary b { color: var(--text); }
+  .photo-thumb {
+    width: 100%; max-width: 320px; aspect-ratio: 4/3;
+    background-size: cover; background-position: center;
+    border-radius: 12px; border: 1px solid var(--border); margin-bottom: 14px;
+  }
+  .btn-row { display: flex; gap: 10px; margin-top: 8px; }
+  .btn {
+    flex: 1; padding: 14px; font-size: 14px; font-weight: 600;
+    border: none; border-radius: 10px; cursor: pointer;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-secondary { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+  .btn-success { background: var(--success); color: #fff; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(60px);
+    background: var(--text); color: #fff; padding: 12px 20px; border-radius: 999px;
+    font-size: 13px; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+    transition: transform 0.25s ease, opacity 0.2s; opacity: 0; pointer-events: none;
+    z-index: 1000;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.error { background: var(--error); }
+  .toast.success { background: var(--success); }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    display: none; align-items: flex-start; justify-content: center;
+    padding: 24px 12px; overflow-y: auto; z-index: 100;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--bg); border-radius: 16px; max-width: 520px; width: 100%;
+    max-height: calc(100vh - 48px); overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .modal-head {
+    padding: 16px 18px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; background: var(--bg);
+  }
+  .modal-head h2 { margin: 0; font-size: 17px; }
+  .modal-x {
+    background: transparent; border: none; font-size: 22px; cursor: pointer;
+    color: var(--text-muted); padding: 4px 10px;
+  }
+  .modal-body { overflow-y: auto; padding: 0 14px 14px; }
+
+  /* Notes — hierarchy inversée Sprint 6 */
+  .my-stats-banner {
+    margin: 12px 0 8px; padding: 12px 14px;
+    background: linear-gradient(135deg, var(--accent-soft) 0%, #ffe4c0 100%);
+    border: 1.5px solid var(--accent); border-radius: 14px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: var(--shadow); font-size: 13px;
+  }
+  .my-stats-banner b { font-size: 18px; font-weight: 800; color: var(--accent); }
+  .my-stats-banner .delta { flex: 1; text-align: right; color: var(--text-muted); font-size: 12px; }
+  .my-stats-banner .delta.up { color: var(--success); font-weight: 600; }
+  .my-stats-banner .delta.down { color: var(--error); font-weight: 600; }
+
+  .notes-section-header {
+    padding: 14px 4px 6px; font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .notes-section-header.unread { color: var(--accent); }
+  .notes-section-header.read { color: var(--text-muted); margin-top: 12px; }
+  .notes-section-header::after {
+    content: ""; flex: 1; height: 2px; background: currentColor; opacity: 0.25;
+  }
+
+  .note-card {
+    margin: 8px 0; padding: 16px;
+    border-radius: 12px; background: var(--surface);
+    border-left: 4px solid var(--border); box-shadow: var(--shadow);
+    transition: transform 0.3s, opacity 0.3s;
+  }
+  .note-card[data-mood="thumb_up"], .note-card[data-mood="excellent"] {
+    background: var(--note-positive-bg); border-left-color: var(--note-positive-edge);
+  }
+  .note-card[data-mood="ok"] { background: var(--note-neutral-bg); border-left-color: var(--note-neutral-edge); }
+  .note-card[data-mood="thumb_down"] { background: var(--note-improve-bg); border-left-color: var(--note-improve-edge); }
+  .note-card[data-mood="photo"] { background: var(--note-photo-bg); border-left-color: var(--note-photo-edge); }
+  .note-card.read {
+    background: #fff; border-left: 2px solid var(--border); padding: 10px 14px;
+    margin: 4px 0; box-shadow: none;
+  }
+  .note-card.read .ack-zone { display: none; }
+  .note-card .nc-photo {
+    position: relative; width: 100%; aspect-ratio: 16/9;
+    border-radius: 8px; overflow: hidden; background: var(--surface-soft);
+    border: 1px solid var(--border); margin-bottom: 12px; cursor: zoom-in;
+  }
+  .note-card .nc-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .note-card .nc-photo .badge-annot {
+    position: absolute; top: 8px; right: 8px;
+    background: var(--note-photo-edge); color: #fff; font-size: 11px; font-weight: 700;
+    padding: 3px 9px; border-radius: 999px;
+  }
+  .note-card.read .nc-photo {
+    aspect-ratio: 4/3; max-width: 80px; margin: 0 10px 0 0; float: left; border-radius: 6px;
+  }
+  .note-card .nc-remark {
+    display: flex; gap: 10px; font-size: 16px; line-height: 1.5; margin-bottom: 10px;
+  }
+  .note-card.read .nc-remark { font-size: 14px; margin-bottom: 4px; }
+  .note-card .nc-remark .nc-mood { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .note-card.read .nc-remark .nc-mood { font-size: 16px; }
+  .note-card .nc-remark.empty { color: var(--text-muted); font-style: italic; }
+  .note-card .nc-meta { font-size: 11px; color: var(--text-muted); }
+  .note-card.read::after { content: ""; display: block; clear: both; }
+  .ack-zone { margin-top: 12px; }
+  .ack-btn {
+    width: 100%; padding: 11px; font-size: 14px; font-weight: 600;
+    background: var(--accent); color: #fff; border: none; border-radius: 10px; cursor: pointer;
+  }
+  .ack-btn:active { transform: scale(0.98); }
+  .ack-btn:disabled { opacity: 0.6; cursor: wait; }
+
+  .empty-state {
+    text-align: center; padding: 36px 24px;
+  }
+  .empty-state .arrow {
+    font-size: 48px; color: var(--accent); margin-bottom: 8px; display: block;
+  }
+  .empty-state .title { font-family: Georgia, serif; font-size: 22px; }
+  .empty-state .sub { color: var(--text-muted); font-size: 13px; }
+
+  /* Hidden file inputs */
+  input[type=file] { display: none; }
+
+  /* Footer */
+  footer {
+    text-align: center; padding: 16px 0; color: var(--text-muted);
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== LOGIN VIEW ========== -->
+<div id="view-login">
+  <div class="logo"><span class="arrow">↑</span><span>RISE</span></div>
+  <div class="tag">Le pain monte. L'équipe aussi.</div>
+  <div class="prompt">Tape ton PIN pour te connecter</div>
+  <div class="dots" id="login-dots"></div>
+  <div class="pad">
+    <button class="key" data-d="1">1</button>
+    <button class="key" data-d="2">2</button>
+    <button class="key" data-d="3">3</button>
+    <button class="key" data-d="4">4</button>
+    <button class="key" data-d="5">5</button>
+    <button class="key" data-d="6">6</button>
+    <button class="key" data-d="7">7</button>
+    <button class="key" data-d="8">8</button>
+    <button class="key" data-d="9">9</button>
+    <button class="key action" id="login-clear">effacer</button>
+    <button class="key" data-d="0">0</button>
+    <button class="key submit" id="login-submit">→</button>
+  </div>
+  <div class="err" id="login-err"></div>
+</div>
+
+<!-- ========== MAIN VIEW ========== -->
+<div id="view-main" class="hidden">
+  <header class="bar">
+    <h1><span class="arrow">↑</span><span>RISE</span></h1>
+    <div class="user">
+      <span class="pill" id="status-pill">prêt</span>
+      <b id="who-name">—</b>
+      <button class="logout-btn" id="logout-btn">déconnexion</button>
+    </div>
+  </header>
+
+  <main>
+    <button id="notes-banner" class="notes-banner hidden">
+      <span class="icon">📩</span>
+      <span class="txt">
+        <b id="notes-banner-title">0 nouvelle remarque</b>
+        <span>Tape ici pour les lire</span>
+      </span>
+    </button>
+
+    <div class="pdv-row" id="pdv-row"></div>
+    <div class="cat-grid" id="cat-grid"></div>
+
+    <button id="preview-cta" class="preview-cta" aria-disabled="true">
+      <span class="cam-emoji">📷</span>
+      <span class="cam-title" id="cta-title">Prendre une photo</span>
+      <span class="cam-hint" id="cta-hint">Choisis d'abord un restaurant et un type</span>
+    </button>
+
+    <div id="batch-view" class="batch-view hidden">
+      <div class="batch-summary" id="batch-summary"></div>
+      <div class="photo-thumb" id="batch-thumb"></div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="batch-cancel">Annuler</button>
+        <button class="btn btn-success" id="batch-send">Envoyer</button>
+      </div>
+    </div>
+
+    <input type="file" id="file-input" accept="image/*" capture="environment">
+
+    <footer>Rise ↑ · Supabase · Le pain monte. L'équipe aussi.</footer>
+  </main>
+</div>
+
+<!-- ========== MODAL : Mes retours ========== -->
+<div id="notes-modal" class="modal-overlay" role="dialog" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="notes-modal-title">Mes retours</h2>
+      <button class="modal-x" id="notes-modal-close">×</button>
+    </div>
+    <div class="modal-body" id="notes-modal-body"></div>
+  </div>
+</div>
+
+<!-- ========== TOAST ========== -->
+<div class="toast" id="toast"></div>
+
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script>
+(function() {
+  const cfg = window.RISE_CONFIG;
+  const STATIONS = cfg.STATIONS;
+
+  // -------- helpers --------
+  function $(id) { return document.getElementById(id); }
+  function escapeHtml(s) {
+    return String(s == null ? "" : s)
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;").replaceAll("'","&#39;");
+  }
+  let toastTimer;
+  function toast(msg, kind) {
+    const el = $("toast");
+    el.className = "toast" + (kind ? " " + kind : "");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove("show"), 2500);
+  }
+  function formatRelative(dateStr) {
+    if (!dateStr) return "";
+    const ymd = String(dateStr).split("#")[0].slice(0, 10);
+    const today = new Date(); today.setHours(0,0,0,0);
+    const d = new Date(ymd + "T00:00:00");
+    const diffDays = Math.round((today - d) / 86400000);
+    if (diffDays === 0) return "Aujourd'hui";
+    if (diffDays === 1) return "Hier";
+    if (diffDays > 0 && diffDays < 7) return `Il y a ${diffDays} j`;
+    const months = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+    return `${d.getDate()} ${months[d.getMonth()]}`;
+  }
+  function pickMood(n) {
+    let key = n.mood || null;
+    if (!key && n.score != null) {
+      if (n.score >= 7) key = 'thumb_up';
+      else if (n.score < 5) key = 'thumb_down';
+      else key = 'ok';
+    }
+    if (!key && n.checkin_id) key = 'photo';
+    const emoji = key === 'thumb_up' || key === 'excellent' ? '👍'
+               : key === 'ok' ? '🆗'
+               : key === 'thumb_down' ? '👎'
+               : key === 'photo' ? '📷'
+               : '💬';
+    return { key: key || 'neutral', emoji };
+  }
+
+  // -------- state --------
+  let pinBuffer = "";
+  let selectedPdv = null;
+  let selectedCat = null;
+  let pendingPhotoFile = null;
+  let myNotesCache = [];
+
+  // -------- LOGIN --------
+  function renderDots() {
+    const n = pinBuffer.length;
+    let html = "";
+    for (let i = 0; i < Math.max(4, n); i++) {
+      html += `<span class="dot${i < n ? ' filled' : ''}"></span>`;
+    }
+    $("login-dots").innerHTML = html;
+  }
+  document.querySelectorAll('.pad .key[data-d]').forEach(b => {
+    b.addEventListener('click', () => {
+      if (pinBuffer.length >= 6) return;
+      pinBuffer += b.dataset.d;
+      renderDots();
+      $("login-err").textContent = "";
+      // Auto-submit at length 4 if not 5/6 expected — fallback : user can press →
+      if (pinBuffer.length === 4) {
+        setTimeout(() => { if (pinBuffer.length === 4) submitPin(); }, 200);
+      }
+    });
+  });
+  $("login-clear").addEventListener('click', () => {
+    pinBuffer = "";
+    renderDots();
+    $("login-err").textContent = "";
+  });
+  $("login-submit").addEventListener('click', submitPin);
+
+  async function submitPin() {
+    if (pinBuffer.length < 4) {
+      $("login-err").textContent = "PIN doit faire 4 à 6 chiffres";
+      return;
+    }
+    $("login-err").textContent = "...";
+    try {
+      await RiseAPI.login(pinBuffer);
+      pinBuffer = "";
+      renderDots();
+      enterMain();
+    } catch (e) {
+      pinBuffer = "";
+      renderDots();
+      $("login-err").textContent = e.message || "PIN incorrect";
+    }
+  }
+
+  $("logout-btn").addEventListener('click', () => {
+    RiseAPI.logout();
+    location.reload();
+  });
+
+  // -------- MAIN VIEW --------
+  function enterMain() {
+    $("view-login").classList.add("hidden");
+    $("view-main").classList.remove("hidden");
+    const staff = RiseAPI.getStaff();
+    $("who-name").textContent = staff?.name || "—";
+    renderPickers();
+    refreshUnreadCount();
+  }
+
+  function renderPickers() {
+    // PdV row
+    const pdvRow = $("pdv-row");
+    pdvRow.innerHTML = "";
+    Object.entries(STATIONS.pdv).forEach(([k, label]) => {
+      const b = document.createElement('button');
+      b.className = 'pdv-btn' + (selectedPdv === k ? ' active' : '');
+      b.innerHTML = `<span class="pdv-emoji">${STATIONS.pdv_emoji[k] || ''}</span><span class="pdv-label">${escapeHtml(label.replace('Le Pain Quotidien ', ''))}</span>`;
+      b.addEventListener('click', () => { selectedPdv = k; renderPickers(); updateCta(); });
+      pdvRow.appendChild(b);
+    });
+    // Cat grid
+    const catGrid = $("cat-grid");
+    catGrid.innerHTML = "";
+    Object.entries(STATIONS.categories).forEach(([k, label]) => {
+      const b = document.createElement('button');
+      const enabled = !!selectedPdv;
+      b.className = 'cat-btn' + (enabled ? ' enabled' : '') + (selectedCat === k ? ' active' : '');
+      b.innerHTML = `<span class="cat-emoji">${STATIONS.category_emoji[k] || ''}</span><span class="cat-label">${escapeHtml(label)}</span>`;
+      b.addEventListener('click', () => {
+        if (!enabled) { toast("Choisis un PdV d'abord"); return; }
+        selectedCat = k; renderPickers(); updateCta();
+      });
+      catGrid.appendChild(b);
+    });
+    updateCta();
+  }
+
+  function updateCta() {
+    const cta = $("preview-cta");
+    if (selectedPdv && selectedCat) {
+      cta.classList.add("ready");
+      cta.setAttribute("aria-disabled", "false");
+      const pdvLabel = STATIONS.pdv[selectedPdv]?.replace('Le Pain Quotidien ', '');
+      $("cta-hint").textContent = `${pdvLabel} · ${STATIONS.categories[selectedCat]}`;
+    } else {
+      cta.classList.remove("ready");
+      cta.setAttribute("aria-disabled", "true");
+      $("cta-hint").textContent = "Choisis d'abord un restaurant et un type";
+    }
+  }
+
+  $("preview-cta").addEventListener('click', () => {
+    if ($("preview-cta").getAttribute("aria-disabled") === "true") return;
+    $("file-input").click();
+  });
+
+  $("file-input").addEventListener('change', (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    pendingPhotoFile = f;
+    showBatchView();
+  });
+
+  function showBatchView() {
+    $("preview-cta").classList.add("hidden");
+    $("pdv-row").classList.add("hidden");
+    $("cat-grid").classList.add("hidden");
+    const bv = $("batch-view");
+    bv.classList.remove("hidden");
+    const pdvLabel = STATIONS.pdv[selectedPdv];
+    const catLabel = STATIONS.categories[selectedCat];
+    $("batch-summary").innerHTML = `<b>1 photo</b> · ${escapeHtml(pdvLabel)} · ${escapeHtml(catLabel)}`;
+    const url = URL.createObjectURL(pendingPhotoFile);
+    $("batch-thumb").style.backgroundImage = `url(${url})`;
+  }
+
+  $("batch-cancel").addEventListener('click', () => {
+    pendingPhotoFile = null;
+    $("file-input").value = "";
+    $("batch-view").classList.add("hidden");
+    $("preview-cta").classList.remove("hidden");
+    $("pdv-row").classList.remove("hidden");
+    $("cat-grid").classList.remove("hidden");
+  });
+
+  $("batch-send").addEventListener('click', async () => {
+    if (!pendingPhotoFile || !selectedPdv || !selectedCat) return;
+    $("batch-send").disabled = true;
+    $("batch-send").textContent = "Envoi...";
+    try {
+      await RiseAPI.upload({ pdv: selectedPdv, category: selectedCat, photoFile: pendingPhotoFile });
+      toast("Envoyé ✓", "success");
+      // Reset
+      pendingPhotoFile = null;
+      $("file-input").value = "";
+      $("batch-view").classList.add("hidden");
+      $("preview-cta").classList.remove("hidden");
+      $("pdv-row").classList.remove("hidden");
+      $("cat-grid").classList.remove("hidden");
+      $("batch-send").disabled = false;
+      $("batch-send").textContent = "Envoyer";
+    } catch (e) {
+      toast("Erreur upload : " + (e.message || "?"), "error");
+      $("batch-send").disabled = false;
+      $("batch-send").textContent = "Envoyer";
+    }
+  });
+
+  // -------- NOTES MODAL --------
+  async function refreshUnreadCount() {
+    try {
+      const j = await RiseAPI.myUnreadCount();
+      const n = j.unread || 0;
+      const banner = $("notes-banner");
+      if (n === 0) banner.classList.add("hidden");
+      else {
+        banner.classList.remove("hidden");
+        $("notes-banner-title").textContent = `${n} nouvelle${n > 1 ? "s" : ""} remarque${n > 1 ? "s" : ""}`;
+      }
+    } catch {}
+  }
+
+  $("notes-banner").addEventListener('click', openNotesModal);
+  $("notes-modal-close").addEventListener('click', () => $("notes-modal").classList.remove("show"));
+  $("notes-modal").addEventListener('click', (e) => {
+    if (e.target.id === "notes-modal") $("notes-modal").classList.remove("show");
+  });
+
+  async function openNotesModal() {
+    const body = $("notes-modal-body");
+    body.innerHTML = "<div style='padding:20px;color:var(--text-muted)'>Chargement...</div>";
+    $("notes-modal").classList.add("show");
+    try {
+      const [notes, stats] = await Promise.all([
+        RiseAPI.myNotes({ from: dateNDaysAgo(30) }),
+        RiseAPI.myDopamineStats(),
+      ]);
+      myNotesCache = notes.notes || [];
+      renderNotesModal(stats);
+    } catch (e) {
+      body.innerHTML = `<div style='padding:20px;color:var(--error)'>Erreur : ${escapeHtml(e.message)}</div>`;
+    }
+  }
+
+  function dateNDaysAgo(n) {
+    const d = new Date(Date.now() - n * 86400000);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function renderNotesModal(stats) {
+    const body = $("notes-modal-body");
+    const unread = myNotesCache.filter(n => !n.read_at);
+    const read = myNotesCache.filter(n => n.read_at);
+
+    $("notes-modal-title").textContent =
+      unread.length > 0
+        ? `Mes retours · ${unread.length} nouveau${unread.length > 1 ? "x" : ""}`
+        : "Mes retours · tout est à jour ✓";
+
+    body.innerHTML = "";
+
+    // Banner stats
+    const delta = stats.this_week - stats.last_week;
+    const deltaClass = delta > 0 ? "up" : delta < 0 ? "down" : "";
+    const deltaTxt = delta > 0 ? `+${delta} cette sem. 📈` : delta < 0 ? `${delta} cette sem.` : `— ${stats.this_week} cette sem.`;
+    const streakIcon = stats.streak_days > 0 ? "🔥" : "✨";
+    body.insertAdjacentHTML("beforeend", `
+      <div class="my-stats-banner">
+        <span>${streakIcon} <b>${stats.streak_days}</b>j</span>
+        <span>✨ <b>${stats.bons_points_total}</b>pts</span>
+        <span class="delta ${deltaClass}">${escapeHtml(deltaTxt)}</span>
+      </div>
+    `);
+
+    if (myNotesCache.length === 0) {
+      body.insertAdjacentHTML("beforeend", `
+        <div class="empty-state">
+          <span class="arrow">↑</span>
+          <div class="title">Tout est à jour. Beau boulot.</div>
+          <div class="sub">Aucun retour pour le moment — continue comme ça.</div>
+        </div>
+      `);
+      return;
+    }
+
+    if (unread.length > 0) {
+      body.insertAdjacentHTML("beforeend",
+        `<div class="notes-section-header unread">À lire · ${unread.length}</div>`);
+      unread.forEach(n => body.appendChild(renderNoteCard(n, false)));
+    } else {
+      body.insertAdjacentHTML("beforeend", `
+        <div class="empty-state">
+          <span class="arrow">↑</span>
+          <div class="title">Tout est à jour. Beau boulot.</div>
+          <div class="sub">Tu as lu tous tes retours actifs.</div>
+        </div>
+      `);
+    }
+    if (read.length > 0) {
+      body.insertAdjacentHTML("beforeend",
+        `<div class="notes-section-header read">Historique · ${read.length}</div>`);
+      read.forEach(n => body.appendChild(renderNoteCard(n, true)));
+    }
+
+    body.querySelectorAll(".ack-btn").forEach(b => {
+      b.addEventListener("click", () => ackNoteUI(parseInt(b.dataset.id, 10), b));
+    });
+  }
+
+  function renderNoteCard(n, isRead) {
+    const card = document.createElement("div");
+    card.className = "note-card " + (isRead ? "read" : "unread");
+    const mood = pickMood(n);
+    card.dataset.mood = mood.key;
+    card.dataset.id = n.id;
+
+    const cat = STATIONS.categories[n.category] || n.category;
+    const pdv = STATIONS.pdv[n.pdv] || n.pdv;
+    const dateRel = formatRelative(n.note_date_display || n.note_date);
+
+    let photoHtml = "";
+    if (n.checkin_id && n.checkin_signed_url) {
+      const ann = Array.isArray(n.checkin_annotations) ? n.checkin_annotations : [];
+      const badge = ann.length > 0 ? `<span class="badge-annot">✎ annotée</span>` : "";
+      photoHtml = `<div class="nc-photo"><img src="${escapeHtml(n.checkin_signed_url)}" loading="lazy" alt="">${badge}</div>`;
+    }
+
+    const remarkText = n.remark ? escapeHtml(n.remark) : "(pas de commentaire)";
+    const remarkClass = n.remark ? "" : "empty";
+    const remarkHtml = `
+      <div class="nc-remark ${remarkClass}">
+        <span class="nc-mood">${mood.emoji}</span>
+        <span>${remarkText}</span>
+      </div>
+    `;
+
+    const readSuffix = isRead && n.read_at ? " · ✓ Lu" : "";
+    const metaHtml = `<div class="nc-meta">${escapeHtml(pdv)} · ${escapeHtml(cat)} · ${escapeHtml(dateRel)}${readSuffix}</div>`;
+
+    const ackHtml = isRead ? "" :
+      `<div class="ack-zone"><button class="ack-btn" data-id="${n.id}">J'ai lu et compris</button></div>`;
+
+    card.innerHTML = photoHtml + remarkHtml + metaHtml + ackHtml;
+    return card;
+  }
+
+  async function ackNoteUI(noteId, btn) {
+    btn.disabled = true;
+    btn.textContent = "Confirmation...";
+    try {
+      await RiseAPI.ackNote(noteId);
+      const n = myNotesCache.find(x => x.id === noteId);
+      if (n) n.read_at = new Date().toISOString();
+      toast("Confirmé ✓", "success");
+      // Re-render
+      const r = await RiseAPI.myDopamineStats();
+      renderNotesModal(r);
+      refreshUnreadCount();
+    } catch (e) {
+      toast("Erreur : " + (e.message || "?"), "error");
+      btn.disabled = false;
+      btn.textContent = "J'ai lu et compris";
+    }
+  }
+
+  // -------- BOOT --------
+  if (RiseAPI.isLogged()) {
+    enterMain();
+  } else {
+    renderDots();
+  }
+
+  // Service Worker (PWA offline + install)
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
