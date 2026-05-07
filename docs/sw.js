@@ -5,7 +5,7 @@
 // ⚠️ Bump CACHE à chaque release frontend pour forcer l'invalidation
 // (sinon les anciens clients gardent l'ancien api.js et ratent les
 // nouvelles fonctions API ajoutées).
-const CACHE = "rise-shell-v3-voicenotes";
+const CACHE = "rise-shell-v4-zones";
 const SHELL = ["./", "./index.html", "./config.js", "./api.js", "./manifest.json", "./dashboard.html"];
 
 self.addEventListener("install", (e) => {

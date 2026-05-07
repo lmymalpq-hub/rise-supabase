@@ -127,7 +127,14 @@
   }
   .pdv-emoji, .cat-emoji { font-size: 24px; }
   .pdv-label, .cat-label { font-size: 13px; font-weight: 600; }
-  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .zone-block { margin-bottom: 14px; }
+  .zone-header {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.6px;
+    padding: 4px 4px 6px;
+  }
+  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
   .cat-btn { padding: 18px 10px; opacity: 0.55; }
   .cat-btn.enabled { opacity: 1; }
   .cat-btn.active { opacity: 1; }
@@ -457,7 +464,7 @@
     </button>
 
     <div class="pdv-row" id="pdv-row"></div>
-    <div class="cat-grid" id="cat-grid"></div>
+    <div id="cat-zones"></div>
 
     <!-- Wizard mode — visible quand la cat sélectionnée a une séquence active -->
     <div id="wizard-banner" class="wizard-banner hidden">
@@ -674,20 +681,55 @@
       b.addEventListener('click', () => { selectedPdv = k; renderPickers(); updateCta(); });
       pdvRow.appendChild(b);
     });
-    // Cat grid
-    const catGrid = $("cat-grid");
-    catGrid.innerHTML = "";
-    Object.entries(STATIONS.categories).forEach(([k, label]) => {
-      const b = document.createElement('button');
-      const enabled = !!selectedPdv;
-      b.className = 'cat-btn' + (enabled ? ' enabled' : '') + (selectedCat === k ? ' active' : '');
-      b.innerHTML = `<span class="cat-emoji">${STATIONS.category_emoji[k] || ''}</span><span class="cat-label">${escapeHtml(label)}</span>`;
-      b.addEventListener('click', () => {
-        if (!enabled) { toast("Choisis un PdV d'abord"); return; }
-        selectedCat = k; renderPickers(); updateCta();
+    // Catégories groupées par zone (Salle / Comptoir / Cuisine)
+    const zonesEl = $("cat-zones");
+    zonesEl.innerHTML = "";
+    const zones = STATIONS.zones || [];
+    const used = new Set();
+    zones.forEach((z) => {
+      const block = document.createElement("div");
+      block.className = "zone-block";
+      const header = document.createElement("div");
+      header.className = "zone-header";
+      header.innerHTML = `<span>${z.emoji}</span><span>${escapeHtml(z.label)}</span>`;
+      block.appendChild(header);
+      const grid = document.createElement("div");
+      grid.className = "cat-grid";
+      z.categories.forEach((k) => {
+        const label = STATIONS.categories[k];
+        if (!label) return;
+        used.add(k);
+        const b = document.createElement("button");
+        const enabled = !!selectedPdv;
+        b.className = "cat-btn" + (enabled ? " enabled" : "") + (selectedCat === k ? " active" : "");
+        b.innerHTML = `<span class="cat-emoji">${STATIONS.category_emoji[k] || ""}</span><span class="cat-label">${escapeHtml(label)}</span>`;
+        b.addEventListener("click", () => {
+          if (!enabled) { toast("Choisis un PdV d'abord"); return; }
+          selectedCat = k; renderPickers(); updateCta();
+        });
+        grid.appendChild(b);
       });
-      catGrid.appendChild(b);
+      block.appendChild(grid);
+      zonesEl.appendChild(block);
     });
+    // Ajout des catégories non listées dans une zone (fallback)
+    const orphans = Object.entries(STATIONS.categories).filter(([k]) => !used.has(k));
+    if (orphans.length > 0) {
+      const grid = document.createElement("div");
+      grid.className = "cat-grid";
+      orphans.forEach(([k, label]) => {
+        const b = document.createElement("button");
+        const enabled = !!selectedPdv;
+        b.className = "cat-btn" + (enabled ? " enabled" : "") + (selectedCat === k ? " active" : "");
+        b.innerHTML = `<span class="cat-emoji">${STATIONS.category_emoji[k] || ""}</span><span class="cat-label">${escapeHtml(label)}</span>`;
+        b.addEventListener("click", () => {
+          if (!enabled) { toast("Choisis un PdV d'abord"); return; }
+          selectedCat = k; renderPickers(); updateCta();
+        });
+        grid.appendChild(b);
+      });
+      zonesEl.appendChild(grid);
+    }
     updateCta();
   }
 
@@ -794,7 +836,7 @@
   function showBatchView() {
     $("preview-cta").classList.add("hidden");
     $("pdv-row").classList.add("hidden");
-    $("cat-grid").classList.add("hidden");
+    $("cat-zones").classList.add("hidden");
     $("wizard-banner").classList.add("hidden");
     const bv = $("batch-view");
     bv.classList.remove("hidden");
@@ -817,7 +859,7 @@
     $("batch-view").classList.add("hidden");
     if (!currentSequence) $("preview-cta").classList.remove("hidden");
     $("pdv-row").classList.remove("hidden");
-    $("cat-grid").classList.remove("hidden");
+    $("cat-zones").classList.remove("hidden");
     if (currentSequence) $("wizard-banner").classList.remove("hidden");
   });
 
@@ -848,7 +890,7 @@
       // Si on est en wizard mode, on ne ré-affiche pas preview-cta
       if (!currentSequence) $("preview-cta").classList.remove("hidden");
       $("pdv-row").classList.remove("hidden");
-      $("cat-grid").classList.remove("hidden");
+      $("cat-zones").classList.remove("hidden");
       if (currentSequence) $("wizard-banner").classList.remove("hidden");
       $("batch-send").disabled = false;
       $("batch-send").textContent = "Envoyer";

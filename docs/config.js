@@ -33,5 +33,11 @@ window.RISE_CONFIG = {
       "fermeture-cuisine": "🌙",
       "fermeture-salle": "🌙",
     },
+    // Groupement visuel par zone (parité avec la version Python)
+    zones: [
+      { key: "salle",    label: "Zone Salle",    emoji: "🪑", categories: ["terrasse", "fermeture-salle"] },
+      { key: "comptoir", label: "Zone Comptoir", emoji: "🥐", categories: ["comptoir", "pertes-comptoir", "nettoyage-comptoir", "fermeture-comptoir"] },
+      { key: "cuisine",  label: "Zone Cuisine",  emoji: "🍳", categories: ["pertes-cuisine", "nettoyage-cuisine", "fermeture-cuisine"] },
+    ],
   },
 };
