@@ -646,6 +646,7 @@
       await RiseAPI.login(pinBuffer);
       pinBuffer = "";
       renderDots();
+      restoreStashedQrParams();
       enterMain();
     } catch (e) {
       pinBuffer = "";
@@ -665,9 +666,25 @@
     $("view-main").classList.remove("hidden");
     const staff = RiseAPI.getStaff();
     $("who-name").textContent = staff?.name || "—";
+    // Deep-link QR : ?pdv=vh&category=terrasse pré-sélectionne
+    applyQrDeepLink();
     renderPickers();
     refreshUnreadCount();
     showVoicenoteIfSupervisor();
+  }
+
+  function applyQrDeepLink() {
+    try {
+      const sp = new URL(location.href).searchParams;
+      const pdv = sp.get("pdv");
+      const cat = sp.get("category");
+      if (pdv && STATIONS.pdv[pdv]) selectedPdv = pdv;
+      if (cat && STATIONS.categories[cat]) selectedCat = cat;
+      if (pdv || cat) {
+        // Nettoie l'URL pour ne pas relire à chaque login
+        history.replaceState({}, "", location.pathname);
+      }
+    } catch {}
   }
 
   function renderPickers() {
@@ -1166,9 +1183,33 @@
   });
 
   // -------- BOOT --------
+  // Si arrivée par QR mais pas loggé : on stash les params dans sessionStorage
+  // pour les ré-appliquer après login (sinon le replaceState au login les perd).
+  (function stashQrIfNotLogged() {
+    if (!RiseAPI.isLogged()) {
+      const sp = new URL(location.href).searchParams;
+      const pdv = sp.get("pdv"); const cat = sp.get("category");
+      if (pdv) sessionStorage.setItem("qr_pdv", pdv);
+      if (cat) sessionStorage.setItem("qr_category", cat);
+    }
+  })();
+  // Et si stashé, on injecte dans l'URL juste avant enterMain (chaîne propre)
+  function restoreStashedQrParams() {
+    const pdv = sessionStorage.getItem("qr_pdv");
+    const cat = sessionStorage.getItem("qr_category");
+    if (pdv || cat) {
+      const sp = new URLSearchParams();
+      if (pdv) sp.set("pdv", pdv);
+      if (cat) sp.set("category", cat);
+      history.replaceState({}, "", location.pathname + "?" + sp);
+      sessionStorage.removeItem("qr_pdv");
+      sessionStorage.removeItem("qr_category");
+    }
+  }
+
   if (RiseAPI.isLogged()) {
+    restoreStashedQrParams();
     enterMain();
-    showVoicenoteIfSupervisor();
   } else {
     renderDots();
   }

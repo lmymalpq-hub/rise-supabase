@@ -28,3 +28,6 @@ yarn-error.log*
 
 # Migration data (one-shot, reproductible depuis le repo Python)
 scripts/migration-data/
+
+# QR codes générés (régénérables via script qr_generator)
+qr_output/
