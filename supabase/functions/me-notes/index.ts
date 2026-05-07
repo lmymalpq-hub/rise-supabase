@@ -70,8 +70,7 @@ Deno.serve(async (req) => {
       } catch {
         annotations = [];
       }
-      // Signed URL avec resize → thumbnail léger pour la liste des notes
-      // (full-res peut être obtenue séparément si besoin via /storage/v1/object/sign)
+      // Avec supabase-js@2.46+ pinné, transform fonctionne nativement
       const { data: signed } = await adminClient.storage
         .from(UPLOADS_BUCKET)
         .createSignedUrl(ck.photo_path, SIGNED_URL_TTL, {

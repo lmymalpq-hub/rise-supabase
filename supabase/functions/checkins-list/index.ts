@@ -49,8 +49,9 @@ Deno.serve(async (req) => {
   const { data: rows, error } = await q;
   if (error) return jsonResponse(500, { error: `DB query failed: ${error.message}` });
 
-  // 2 signed URLs : thumbnail (400px JPEG q75 ~30 KB) pour la grille, full-res
-  // (q90, no resize) pour la modale détail.
+  // Avec supabase-js@2.46+ pinned, createSignedUrl({transform}) signe les
+  // params de transform dans le token JWT et génère directement une URL
+  // /render/image/sign/... que Supabase honore.
   const out = [];
   for (const r of rows || []) {
     let thumb: string | null = null;
