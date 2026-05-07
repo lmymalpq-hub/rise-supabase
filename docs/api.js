@@ -124,6 +124,24 @@
     },
 
     // Admin
+    async listCheckins(params = {}) {
+      const qs = new URLSearchParams();
+      Object.entries(params).forEach(([k, v]) => {
+        if (v != null && v !== "") qs.set(k, v);
+      });
+      const url = FN_BASE + "/checkins-list" + (qs.toString() ? "?" + qs : "");
+      const r = await fetch(url, { headers: authedHeaders() });
+      return jsonOrThrow(r);
+    },
+
+    async listStaff({ include_inactive = false, with_counts = true } = {}) {
+      const qs = new URLSearchParams();
+      if (include_inactive) qs.set("include_inactive", "1");
+      if (with_counts) qs.set("with_counts", "1");
+      const r = await fetch(FN_BASE + "/staff-list?" + qs, { headers: authedHeaders() });
+      return jsonOrThrow(r);
+    },
+
     async annotateCheckin(checkinId, { annotations, note }) {
       const r = await fetch(FN_BASE + "/checkins-annotate?id=" + checkinId, {
         method: "POST",
