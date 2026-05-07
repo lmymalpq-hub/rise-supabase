@@ -19,6 +19,7 @@
 import { adminClient } from "../_shared/db.ts";
 import { currentStaff } from "../_shared/auth.ts";
 import { jsonResponse, preflight } from "../_shared/cors.ts";
+import { pushToStaff } from "../_shared/push.ts";
 
 const ALLOWED_SHAPE_TYPES = new Set(["circle", "arrow", "line"]);
 
@@ -138,10 +139,21 @@ Deno.serve(async (req) => {
         noteId = ins?.id ?? null;
       }
 
-      // 3. Push notif Web VAPID — TODO : implémenter dans Edge Function dédiée
-      // Pour l'instant on retourne juste un placeholder. La logique VAPID
-      // sera ajoutée dans une fonction `push-send` séparée appelée d'ici.
-      pushInfo = { sent: 0, failed: 0 };
+      // 3. Push notif Web VAPID via helper partagé (Sprint TS-14)
+      try {
+        const result = await pushToStaff(ck.staff_id, {
+          title: "Rise · Annotation à lire",
+          body: `${ck.category} · ${baseDate} — ${adminNote.slice(0, 120)}`,
+          tag: `checkin-annot-${checkinId}`,
+          url: "/",
+          note_id: noteId,
+          checkin_id: checkinId,
+        });
+        pushInfo = { sent: result.sent, failed: result.failed };
+      } catch (e) {
+        // ne pas bloquer l'annotation si le push échoue
+        pushInfo = { sent: 0, failed: 0 };
+      }
     } else {
       // adminNote === "" → delete la staff_note liée
       await adminClient.from("staff_notes").delete().eq("checkin_id", checkinId);
