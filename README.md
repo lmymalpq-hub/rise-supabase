@@ -1,124 +1,138 @@
-# RISE — version Supabase 100%
+# RISE — version Supabase
 
-> PWA conformité photo pour les équipes des 2 LPQ (Victor Hugo + Marais)
-> en architecture **full Supabase** (pas de serveur applicatif tiers).
+> PWA conformité photo pour les équipes des 2 LPQ (Victor Hugo + Marais).
+> **Backend 100% Supabase** (Edge Functions + Postgres + Storage privé).
+> **Frontend** servi par GitHub Pages (workaround : Supabase ne sert pas
+> de text/html par sécurité — voir section Hébergement).
 
 ## Pourquoi 2 versions ?
 
 | Repo | Stack | Statut |
 |---|---|---|
-| [`rise`](https://github.com/lmymalpq-hub/rise) | **Python** + SQLite + serveur HTTP custom | 🟢 **Fallback de secours**, version stable, conservée intacte |
-| [`rise-supabase`](https://github.com/lmymalpq-hub/rise-supabase) **(ce repo)** | **TypeScript** Edge Functions + Postgres + Storage + Auth | 🚧 **En cours de réécriture** vers une stack 100% Supabase |
+| [`rise`](https://github.com/lmymalpq-hub/rise) | **Python** + SQLite + serveur HTTP custom | 🟢 Fallback de secours, version stable, conservée intacte |
+| [`rise-supabase`](https://github.com/lmymalpq-hub/rise-supabase) **(ce repo)** | **TypeScript** Edge Functions + Postgres + Storage | 🚧 En réécriture progressive |
 
 Les deux sont volontairement maintenues en parallèle : si la version Supabase pose problème en prod (cold start, limite Edge Function, coût, etc.), on revient sur la version Python sans drama.
+
+## URLs
+
+- **App équipiers** : https://lmymalpq-hub.github.io/rise-supabase/
+- **Dashboard Supabase** : https://supabase.com/dashboard/project/hndbsoxmqtznbnyjqjen
+- **Edge Functions API** : https://hndbsoxmqtznbnyjqjen.supabase.co/functions/v1/
 
 ## Architecture
 
 ```
-   Équipiers (mobile)
-          │  HTTPS
+   Équipiers (mobile, PWA installable)
+          │
+          │  HTML/CSS/JS chargé depuis GitHub Pages (gratuit)
           ▼
+  ┌────────────────────────────────────┐
+  │  GitHub Pages — docs/index.html    │ ← shell HTML/JS uniquement
+  └────────────────┬───────────────────┘
+                   │  fetch() vers les Edge Functions
+                   ▼
   ┌────────────────────────────────────────┐
-  │         SUPABASE (tout-en-un)           │
+  │       SUPABASE (backend complet)         │
   │                                          │
   │  ┌────────────────────────────────────┐ │
-  │  │ Storage bucket "site" (public)    │ │ ← sert index.html, app.js, sw.js
+  │  │ 8 Edge Functions (TypeScript/Deno) │ │ ← /auth, /upload, /me-notes, etc.
   │  └────────────────────────────────────┘ │
   │                                          │
   │  ┌────────────────────────────────────┐ │
-  │  │ Edge Functions (TypeScript/Deno)  │ │ ← API : /auth, /upload, /notes, etc.
+  │  │ Database (Postgres) avec RLS strict │ │
   │  └────────────────────────────────────┘ │
   │                                          │
   │  ┌────────────────────────────────────┐ │
-  │  │ Database (Postgres)                │ │ ← staff, checkins, sessions, staff_notes
-  │  └────────────────────────────────────┘ │
-  │                                          │
-  │  ┌────────────────────────────────────┐ │
-  │  │ Storage bucket "rise-uploads" (priv)│ │ ← photos uploadées par les équipiers
+  │  │ Storage bucket "rise-uploads" (priv)│ │ ← photos servies via signed URLs
   │  └────────────────────────────────────┘ │
   └────────────────────────────────────────┘
 ```
 
-**Aucun service tiers** (ni Vercel, ni Railway, ni VPS) — tout sur Supabase.
+**Pourquoi pas tout sur Supabase pour le frontend ?** Supabase Storage et Edge Runtime forcent `Content-Type: text/plain` + `X-Content-Type-Options: nosniff` sur tout HTML, par mesure anti-phishing. Du coup le shell HTML/CSS/JS est servi gratuitement par GitHub Pages depuis le dossier `docs/`. Tout le backend (DB, Edge Functions, Storage photos) reste 100% Supabase.
 
 ## Structure du repo
 
 ```
 rise-supabase/
-├── README.md                    ← ce fichier
+├── README.md                           ← ce fichier
+├── .env.example                        ← template variables (vraies valeurs en local .env.local gitignored)
+├── docs/                               ← SPA hébergée par GitHub Pages
+│   ├── index.html                      ← shell HTML+CSS+JS (~30 KB)
+│   ├── config.js                       ← URL Supabase + ANON_KEY + catalog stations
+│   ├── api.js                          ← wrapper autour des Edge Functions
+│   ├── sw.js                           ← service worker offline + Web Push
+│   ├── manifest.json                   ← PWA installable
+│   └── icon-192.png, icon-512.png
 ├── supabase/
-│   ├── config.toml              ← config locale Supabase CLI
-│   ├── migrations/              ← schema Postgres + RLS policies
-│   │   └── 0001_init.sql
-│   └── functions/               ← Edge Functions TypeScript
-│       ├── _shared/             ← code partagé (auth, db, env)
-│       ├── auth/                ← POST /auth — login PIN équipier/admin
-│       ├── upload/              ← POST /upload — upload photo + insert checkin
-│       ├── me-notes/            ← GET /me/notes — feedbacks de l'équipier
-│       ├── me-notes-read/       ← POST /me/notes/:id/read — acquittement
-│       ├── checkins-annotate/   ← POST /checkins/:id/annotate — annotation Marwan
-│       └── staff-stats/         ← GET /staff/:id/stats — fiche équipier
-└── docs/
-    ├── public/                  ← assets statiques (icons, manifest, sw.js)
-    └── src/                     ← SPA (HTML + CSS + JS, rendue depuis Storage)
+│   ├── config.toml                     ← config CLI
+│   ├── migrations/0001_init.sql        ← schema Postgres + indexes + RLS
+│   └── functions/                      ← Edge Functions TypeScript
+│       ├── _shared/{auth,db,cors}.ts   ← helpers partagés
+│       ├── auth/                       ← POST /auth (login PIN PBKDF2)
+│       ├── upload/                     ← POST /upload (photo → Storage)
+│       ├── me-notes/                   ← GET /me/notes (notes équipier)
+│       ├── me-notes-read/              ← POST /me/notes/:id/read (acquittement)
+│       ├── me-notes-unread-count/      ← GET /me/notes/unread-count
+│       ├── me-dopamine-stats/          ← GET /me/dopamine-stats
+│       ├── checkins-annotate/          ← POST admin annotation + bridge staff_note
+│       └── staff-stats/                ← GET /staff/:id/stats (fiche admin)
+└── scripts/
+    └── migrate_from_python.py          ← script one-shot SQLite → Postgres + Storage
 ```
 
-## Variables d'environnement (Edge Functions)
+## Variables d'environnement (Edge Functions Secrets)
 
 | Variable | Rôle |
 |---|---|
-| `SUPABASE_URL` | URL du projet Supabase (auto fournie côté Edge) |
-| `SUPABASE_SERVICE_ROLE_KEY` | clé admin pour bypass RLS dans les Edge Functions (auto) |
-| `RISE_PIN_PEPPER` | secret pour HMAC PIN (à set manuellement dans Supabase Dashboard) |
-| `RISE_VAPID_PUBLIC_KEY` / `RISE_VAPID_PRIVATE_KEY` | Web Push VAPID |
+| `SUPABASE_URL` | URL du projet (auto fournie par le runtime) |
+| `SUPABASE_SERVICE_ROLE_KEY` | clé admin pour bypass RLS (auto) |
+| `RISE_PIN_PEPPER` | secret HMAC PIN (réutilisé du repo Python) |
+| `RISE_VAPID_PUBLIC_KEY` / `RISE_VAPID_PRIVATE_PEM` | clés Web Push VAPID |
 | `RISE_VAPID_SUBJECT` | mailto pour VAPID |
-| `RISE_GEMINI_API_KEY` | API Gemini pour transcription voicenotes (Sprint futur) |
 
 ## Déploiement
 
-### Pré-requis (toi, humain)
-
-1. Compte Supabase + projet créé
-2. Bucket Storage `rise-uploads` (privé) créé
-3. Bucket Storage `site` (public) créé pour servir le SPA
-4. Variables d'env posées dans Supabase Dashboard → Settings → Edge Functions → Secrets
-
-### Déploiement (CLI)
+### Côté code
 
 ```bash
-# Premier setup (une fois)
+# Setup (une fois)
 supabase login
-supabase link --project-ref <ton-project-ref>
+supabase link --project-ref hndbsoxmqtznbnyjqjen
 
-# Déployer le schema DB
+# Schema DB (idempotent)
 supabase db push
 
-# Déployer toutes les Edge Functions
-supabase functions deploy
+# Déploiement Edge Functions
+supabase functions deploy --no-verify-jwt
 
-# Déployer le SPA dans le bucket "site"
-supabase storage cp -r docs/public/ ss:///site/
+# Push GitHub → GitHub Pages auto-redeploy en 30 sec
+git push origin main
 ```
 
-## État actuel — Sprint 1 (TypeScript scaffolding)
+### Côté données (one-shot)
 
-- [x] Repo créé + structure dossiers
-- [x] Schema Postgres adapté depuis SQLite (`supabase/migrations/0001_init.sql`)
-- [x] RLS policies basiques (PIN auth via service_role, pas d'accès direct client)
-- [x] Edge Function `auth` (login PIN PBKDF2 compatible avec la version Python)
-- [x] Edge Function `upload` (multipart → Storage + insert checkin)
-- [ ] Edge Functions `me-notes`, `me-notes-read`, `checkins-annotate`, `staff-stats`
-- [ ] SPA frontend dans `docs/`
-- [ ] Web Push VAPID (Edge Function dédiée)
-- [ ] Script de migration des données existantes (SQLite → Postgres)
-- [ ] Tests E2E
-- [ ] Bascule prod
+```bash
+export SUPABASE_ACCESS_TOKEN="sbp_..."
+python3 scripts/migrate_from_python.py
+```
 
-## Migration depuis la version Python
+## État actuel — Sprint TS-12 livré
 
-Quand le côté Supabase sera prêt et testé, un script `scripts/migrate_from_python.ts` exportera :
-1. Toutes les rows de `checkins.db` (Python) → INSERT dans Postgres Supabase
-2. Toutes les photos `uploads/<pdv>/<date>/...` → upload vers bucket `rise-uploads`
-3. Le pepper PBKDF2 sera réutilisé pour que les PINs existants continuent de fonctionner
+- [x] Repo + schema Postgres + buckets Storage + secrets
+- [x] 8 Edge Functions ACTIVE et testées en prod (auth, upload, me-notes, me-notes-read, me-notes-unread-count, me-dopamine-stats, checkins-annotate, staff-stats)
+- [x] Migration des données depuis le repo Python (4 staff, 19 checkins, 19 staff_notes, 18 photos)
+- [x] SPA équipier MVP (login PIN, picker PdV+cat, upload photo, modale notes + acquittement)
+- [x] PWA manifest + service worker
+- [ ] Edge Function `push-send` (Web Push VAPID) — Sprint TS-14
+- [ ] Dashboard admin (web/dashboard.html) — Sprint TS-13
+- [ ] Tests E2E sur tel équipier réel
+- [ ] Bascule prod (régénération QR codes + brief équipe)
 
-Aucune donnée perdue. La version Python reste opérationnelle pendant la bascule.
+## Compatibilité avec la version Python
+
+- Les **PINs PBKDF2** existants restent valides (même pepper, mêmes 200k iter).
+- Les **abonnements Web Push** existants restent valides (mêmes clés VAPID).
+- Le format `note_date` suffixé `'#cN'` (Sprint 5 Python) est conservé.
+
+Aucune donnée perdue, aucun changement côté équipier au moment de la bascule (autre que l'URL).
