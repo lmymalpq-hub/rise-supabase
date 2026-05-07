@@ -58,7 +58,7 @@ rise-supabase/
 │       ├── me-notes-read/       ← POST /me/notes/:id/read — acquittement
 │       ├── checkins-annotate/   ← POST /checkins/:id/annotate — annotation Marwan
 │       └── staff-stats/         ← GET /staff/:id/stats — fiche équipier
-└── web/
+└── docs/
     ├── public/                  ← assets statiques (icons, manifest, sw.js)
     └── src/                     ← SPA (HTML + CSS + JS, rendue depuis Storage)
 ```
@@ -97,7 +97,7 @@ supabase db push
 supabase functions deploy
 
 # Déployer le SPA dans le bucket "site"
-supabase storage cp -r web/public/ ss:///site/
+supabase storage cp -r docs/public/ ss:///site/
 ```
 
 ## État actuel — Sprint 1 (TypeScript scaffolding)
@@ -108,7 +108,7 @@ supabase storage cp -r web/public/ ss:///site/
 - [x] Edge Function `auth` (login PIN PBKDF2 compatible avec la version Python)
 - [x] Edge Function `upload` (multipart → Storage + insert checkin)
 - [ ] Edge Functions `me-notes`, `me-notes-read`, `checkins-annotate`, `staff-stats`
-- [ ] SPA frontend dans `web/`
+- [ ] SPA frontend dans `docs/`
 - [ ] Web Push VAPID (Edge Function dédiée)
 - [ ] Script de migration des données existantes (SQLite → Postgres)
 - [ ] Tests E2E
