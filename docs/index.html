@@ -332,6 +332,65 @@
     cursor: pointer;
   }
 
+  /* Sprint TS-16 — Voicenote (superviseur) */
+  .supervisor-cta {
+    width: 100%; padding: 14px 16px; margin-bottom: 14px;
+    background: linear-gradient(135deg, #fff5e0 0%, #ffe4c0 100%);
+    border: 1.5px solid var(--accent); border-radius: 12px; cursor: pointer;
+    display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow);
+    text-align: left;
+  }
+  .supervisor-cta:active { transform: scale(0.99); }
+  .supervisor-cta .ic { font-size: 26px; }
+  .supervisor-cta .tt b { display: block; font-size: 14px; color: var(--accent); }
+  .supervisor-cta .tt span { font-size: 12px; color: var(--text-muted); }
+  .supervisor-cta .ar { font-size: 22px; color: var(--accent); margin-left: auto; }
+
+  #view-voicenote { padding-top: 8px; }
+  .vn-bar {
+    display: flex; align-items: center; gap: 10px; padding: 8px 0 14px;
+    border-bottom: 1px solid var(--border); margin-bottom: 14px;
+  }
+  .vn-back { background: transparent; border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 12px; font-size: 14px; cursor: pointer; }
+  .vn-bar h2 { margin: 0; font-size: 17px; }
+  .vn-form {
+    display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px;
+  }
+  .vn-form select {
+    padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 14px; background: var(--surface);
+  }
+  .vn-canevas {
+    background: var(--surface-soft); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;
+    font-size: 13px; line-height: 1.5; max-height: 240px; overflow-y: auto;
+  }
+  .vn-canevas h4 { margin: 0 0 6px; font-size: 13px; color: var(--accent); }
+  .vn-canevas pre { white-space: pre-wrap; margin: 0; font: inherit; color: var(--text); }
+  .vn-rec-btn {
+    width: 100%; padding: 24px; font-size: 18px; font-weight: 700;
+    background: var(--accent); color: #fff; border: none; border-radius: 14px;
+    cursor: pointer; box-shadow: var(--shadow);
+  }
+  .vn-rec-btn.recording {
+    background: var(--error);
+    animation: recpulse 1.1s ease-in-out infinite;
+  }
+  @keyframes recpulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(184,73,59, 0.4); }
+    50%      { box-shadow: 0 0 0 10px rgba(184,73,59, 0); }
+  }
+  .vn-status { font-size: 13px; color: var(--text-muted); text-align: center; margin: 12px 0; }
+  .vn-status.processing { color: var(--accent); font-weight: 600; }
+  .vn-result {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px; margin-top: 14px;
+  }
+  .vn-result h3 { margin: 0 0 8px; font-size: 14px; }
+  .vn-result pre { white-space: pre-wrap; margin: 0; font: inherit;
+    font-size: 13px; line-height: 1.5; color: var(--text); }
+
   /* Hidden file inputs */
   input[type=file] { display: none; }
 
@@ -379,6 +438,16 @@
   </header>
 
   <main>
+    <!-- Bouton superviseur : Note de service (visible si is_supervisor) -->
+    <button id="supervisor-cta" class="supervisor-cta hidden">
+      <span class="ic">🎙️</span>
+      <span class="tt">
+        <b>Note de service</b>
+        <span>Enregistre ton brief audio post-service</span>
+      </span>
+      <span class="ar">→</span>
+    </button>
+
     <button id="notes-banner" class="notes-banner hidden">
       <span class="icon">📩</span>
       <span class="txt">
@@ -418,6 +487,41 @@
 
     <footer>Rise ↑ · Supabase · Le pain monte. L'équipe aussi.</footer>
   </main>
+</div>
+
+<!-- ========== VIEW VOICENOTE (superviseur) ========== -->
+<div id="view-voicenote" class="hidden">
+  <div class="vn-bar">
+    <button class="vn-back" id="vn-back">←</button>
+    <h2>🎙️ Note de service</h2>
+  </div>
+  <div class="vn-form">
+    <select id="vn-pdv">
+      <option value="vh">Le Pain Quotidien Victor Hugo</option>
+      <option value="marais">Le Pain Quotidien Marais</option>
+    </select>
+    <select id="vn-zone">
+      <option value="cuisine">🍳 Zone Cuisine</option>
+      <option value="salle">🪑 Zone Salle</option>
+    </select>
+    <select id="vn-slot">
+      <option value="morning">Matin</option>
+      <option value="afternoon">Après-midi</option>
+      <option value="full_day">Journée complète</option>
+    </select>
+  </div>
+  <div class="vn-canevas" id="vn-canevas">
+    <h4 id="vn-canevas-title">Canevas</h4>
+    <pre id="vn-canevas-content">Chargement...</pre>
+  </div>
+  <button class="vn-rec-btn" id="vn-rec-btn">🎙️ Démarrer l'enregistrement</button>
+  <div class="vn-status" id="vn-status"></div>
+  <div class="vn-result hidden" id="vn-result">
+    <h3>📝 Synthèse</h3>
+    <pre id="vn-result-synthesis"></pre>
+    <h3 style="margin-top:14px;">📜 Transcription brute</h3>
+    <pre id="vn-result-raw"></pre>
+  </div>
 </div>
 
 <!-- ========== MODAL : Mes retours ========== -->
@@ -556,6 +660,7 @@
     $("who-name").textContent = staff?.name || "—";
     renderPickers();
     refreshUnreadCount();
+    showVoicenoteIfSupervisor();
   }
 
   function renderPickers() {
@@ -911,9 +1016,117 @@
     }
   }
 
+  // -------- VOICENOTE (superviseur) --------
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let recordStartTime = 0;
+
+  function showVoicenoteIfSupervisor() {
+    const staff = RiseAPI.getStaff();
+    if (staff?.is_supervisor) {
+      $("supervisor-cta").classList.remove("hidden");
+    }
+  }
+  $("supervisor-cta").addEventListener('click', openVoicenote);
+  $("vn-back").addEventListener('click', closeVoicenote);
+  $("vn-zone").addEventListener('change', loadFrameworkForZone);
+
+  function openVoicenote() {
+    $("view-main").classList.add("hidden");
+    $("view-voicenote").classList.remove("hidden");
+    $("vn-result").classList.add("hidden");
+    $("vn-status").textContent = "";
+    $("vn-rec-btn").disabled = false;
+    $("vn-rec-btn").textContent = "🎙️ Démarrer l'enregistrement";
+    $("vn-rec-btn").classList.remove("recording");
+    loadFrameworkForZone();
+  }
+  function closeVoicenote() {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      try { mediaRecorder.stop(); } catch {}
+      mediaRecorder.stream?.getTracks().forEach(t => t.stop());
+    }
+    $("view-voicenote").classList.add("hidden");
+    $("view-main").classList.remove("hidden");
+  }
+  async function loadFrameworkForZone() {
+    const zone = $("vn-zone").value;
+    $("vn-canevas-title").textContent = `Canevas — ${zone === 'cuisine' ? '🍳 Cuisine' : '🪑 Salle'}`;
+    $("vn-canevas-content").textContent = "Chargement...";
+    try {
+      const r = await RiseAPI.getFramework(zone);
+      $("vn-canevas-content").textContent = r.framework?.content || "(pas de canevas configuré pour cette zone — préviens le manager)";
+    } catch (e) {
+      $("vn-canevas-content").textContent = "(impossible de charger le canevas)";
+    }
+  }
+
+  $("vn-rec-btn").addEventListener('click', async () => {
+    if (!mediaRecorder || mediaRecorder.state === "inactive") {
+      // Démarrer
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+        mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.start();
+        recordStartTime = Date.now();
+        $("vn-rec-btn").textContent = "■ Arrêter et envoyer";
+        $("vn-rec-btn").classList.add("recording");
+        $("vn-status").textContent = "Enregistrement en cours...";
+        $("vn-status").classList.remove("processing");
+      } catch (e) {
+        toast("Microphone non autorisé : " + (e.message || ""), "error");
+      }
+    } else {
+      // Arrêter et upload
+      mediaRecorder.stop();
+      mediaRecorder.stream?.getTracks().forEach(t => t.stop());
+      $("vn-rec-btn").classList.remove("recording");
+      $("vn-rec-btn").disabled = true;
+      const duration = Math.round((Date.now() - recordStartTime) / 1000);
+      $("vn-status").classList.add("processing");
+      $("vn-status").textContent = `Enregistrement de ${duration}s — transcription en cours (peut prendre 30-60s)...`;
+
+      // Wait pour le dernier chunk
+      await new Promise(res => mediaRecorder.addEventListener('stop', res, { once: true }));
+      const blob = new Blob(audioChunks, { type: "audio/webm" });
+
+      try {
+        const today = new Date().toISOString().slice(0, 10);
+        const r = await RiseAPI.createVoiceBriefing({
+          pdv: $("vn-pdv").value,
+          zone: $("vn-zone").value,
+          serviceDate: today,
+          serviceSlot: $("vn-slot").value,
+          audioBlob: blob,
+        });
+        $("vn-status").textContent = "";
+        $("vn-status").classList.remove("processing");
+        if (r.ok) {
+          $("vn-result").classList.remove("hidden");
+          $("vn-result-synthesis").textContent = r.synthesis || "(pas de synthèse)";
+          $("vn-result-raw").textContent = r.raw_transcription || "(pas de transcription)";
+          toast("Note vocale traitée ✓", "success");
+        } else {
+          toast("Erreur transcription : " + (r.error || "?"), "error");
+        }
+      } catch (e) {
+        $("vn-status").classList.remove("processing");
+        $("vn-status").textContent = "";
+        toast("Erreur upload : " + (e.message || "?"), "error");
+      } finally {
+        $("vn-rec-btn").disabled = false;
+        $("vn-rec-btn").textContent = "🎙️ Nouvel enregistrement";
+        mediaRecorder = null;
+      }
+    }
+  });
+
   // -------- BOOT --------
   if (RiseAPI.isLogged()) {
     enterMain();
+    showVoicenoteIfSupervisor();
   } else {
     renderDots();
   }

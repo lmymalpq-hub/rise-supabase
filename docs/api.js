@@ -131,6 +131,35 @@
       return jsonOrThrow(r);
     },
 
+    async getFramework(zone) {
+      const r = await fetch(FN_BASE + "/frameworks-get?zone=" + encodeURIComponent(zone),
+        { headers: authedHeaders() });
+      return jsonOrThrow(r);
+    },
+
+    async createVoiceBriefing({ pdv, zone, serviceDate, serviceSlot, audioBlob }) {
+      const fd = new FormData();
+      fd.append("pdv", pdv);
+      fd.append("zone", zone);
+      fd.append("service_date", serviceDate);
+      fd.append("service_slot", serviceSlot);
+      fd.append("audio", audioBlob, "briefing.webm");
+      const r = await fetch(FN_BASE + "/voice-briefings-create", {
+        method: "POST",
+        headers: authedHeaders(),
+        body: fd,
+      });
+      return jsonOrThrow(r);
+    },
+
+    async listVoiceBriefings(params = {}) {
+      const qs = new URLSearchParams();
+      Object.entries(params).forEach(([k, v]) => { if (v != null && v !== "") qs.set(k, v); });
+      const r = await fetch(FN_BASE + "/voice-briefings-list" + (qs.toString() ? "?" + qs : ""),
+        { headers: authedHeaders() });
+      return jsonOrThrow(r);
+    },
+
     async myNotes({ from, to, only_unread } = {}) {
       const params = new URLSearchParams();
       if (from) params.set("from", from);

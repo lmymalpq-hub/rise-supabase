@@ -290,6 +290,7 @@
     <div class="sidebar-section">Quotidien</div>
     <div class="sidebar-item active" data-tab="checkins"><span class="ic">📷</span><span>Check-ins</span></div>
     <div class="sidebar-item" data-tab="equipe"><span class="ic">👤</span><span>Équipe</span></div>
+    <div class="sidebar-item" data-tab="briefings"><span class="ic">🎙️</span><span>Briefings</span></div>
     <div class="sidebar-footer">
       <div id="me-name">—</div>
       <button class="logout" id="logout-btn">Se déconnecter</button>
@@ -322,6 +323,26 @@
         <span class="stats" id="checkins-stats">—</span>
       </div>
       <div class="grid" id="checkins-grid"></div>
+    </section>
+
+    <!-- Section Briefings -->
+    <section id="sec-briefings" class="hidden">
+      <h1>🎙️ Briefings audio</h1>
+      <div class="filters">
+        <select id="bf-pdv">
+          <option value="">Tous PdV</option>
+          <option value="vh">VH</option>
+          <option value="marais">Marais</option>
+        </select>
+        <select id="bf-zone">
+          <option value="">Toutes zones</option>
+          <option value="cuisine">Cuisine</option>
+          <option value="salle">Salle</option>
+        </select>
+        <button class="btn btn-secondary" id="bf-refresh">Rafraîchir</button>
+        <span class="stats" id="bf-stats">—</span>
+      </div>
+      <div id="bf-list"></div>
     </section>
 
     <!-- Section Équipe -->
@@ -484,8 +505,10 @@
     document.querySelectorAll('.sidebar-item').forEach(s => s.classList.toggle('active', s.dataset.tab === t));
     $("sec-checkins").classList.toggle("hidden", t !== "checkins");
     $("sec-equipe").classList.toggle("hidden", t !== "equipe");
+    $("sec-briefings").classList.toggle("hidden", t !== "briefings");
     if (t === "checkins") refreshCheckins();
     if (t === "equipe") refreshEquipeList();
+    if (t === "briefings") refreshBriefings();
   }
 
   // =================== CHECK-INS GRID ===================
@@ -706,6 +729,47 @@
       }
     } catch (e) {
       $("eq-detail-name").textContent = "Erreur : " + e.message;
+    }
+  }
+
+  // =================== BRIEFINGS ===================
+  $("bf-refresh").addEventListener('click', refreshBriefings);
+  $("bf-pdv").addEventListener('change', refreshBriefings);
+  $("bf-zone").addEventListener('change', refreshBriefings);
+
+  async function refreshBriefings() {
+    const list = $("bf-list");
+    list.innerHTML = '<div style="padding:24px;color:var(--text-muted)">Chargement...</div>';
+    try {
+      const j = await RiseAPI.listVoiceBriefings({
+        pdv: $("bf-pdv").value,
+        zone: $("bf-zone").value,
+        limit: 50,
+      });
+      $("bf-stats").textContent = `${j.count} briefing${j.count > 1 ? "s" : ""}`;
+      if (!j.briefings || j.briefings.length === 0) {
+        list.innerHTML = '<div style="padding:24px;color:var(--text-muted)">Aucun briefing pour ces filtres.</div>';
+        return;
+      }
+      list.innerHTML = '';
+      j.briefings.forEach(b => {
+        const card = document.createElement('div');
+        card.style.cssText = "background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 18px; margin-bottom:10px;";
+        const slot = b.service_slot === "morning" ? "🌅 Matin" : b.service_slot === "afternoon" ? "🌆 Après-midi" : "📆 Journée";
+        const status = b.status === "done" ? "✅ Done" : b.status === "failed" ? "❌ Failed" : `⏳ ${b.status}`;
+        card.innerHTML = `
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+            <b>${escapeHtml(b.service_date)}</b>
+            <span style="color:var(--text-muted); font-size:13px">${escapeHtml((b.pdv || '').toUpperCase())} · ${escapeHtml(b.zone)} · ${slot}</span>
+            <span style="margin-left:auto; font-size:12px; color:var(--text-muted)">${status} · ${escapeHtml(b.supervisor_name || '?')}</span>
+          </div>
+          ${b.synthesis ? `<details><summary style="cursor:pointer; color:var(--accent); font-weight:600; font-size:13px">📝 Voir la synthèse</summary><pre style="white-space:pre-wrap; margin-top:10px; font: inherit; font-size:13px; line-height:1.5;">${escapeHtml(b.synthesis)}</pre></details>` : ""}
+          ${b.error_msg ? `<div style="color:var(--error); font-size:12px; margin-top:8px;">⚠️ ${escapeHtml(b.error_msg)}</div>` : ""}
+        `;
+        list.appendChild(card);
+      });
+    } catch (e) {
+      list.innerHTML = `<div style="padding:24px;color:var(--error)">${escapeHtml(e.message)}</div>`;
     }
   }
 
