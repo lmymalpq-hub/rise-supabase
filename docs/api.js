@@ -131,6 +131,20 @@
       return jsonOrThrow(r);
     },
 
+    // Admin séquences (dashboard)
+    async listSequences() {
+      const r = await fetch(FN_BASE + "/sequences-admin", { headers: authedHeaders() });
+      return jsonOrThrow(r);
+    },
+    async sequenceAdminOp(op, payload = {}) {
+      const r = await fetch(FN_BASE + "/sequences-admin", {
+        method: "POST",
+        headers: { ...authedHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify({ op, ...payload }),
+      });
+      return jsonOrThrow(r);
+    },
+
     async getFramework(zone) {
       const r = await fetch(FN_BASE + "/frameworks-get?zone=" + encodeURIComponent(zone),
         { headers: authedHeaders() });

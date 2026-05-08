@@ -21,7 +21,13 @@ const GEMINI_MODEL = "gemini-2.0-flash";
 
 const ALLOWED_PDVS = new Set(["vh", "marais"]);
 const ALLOWED_ZONES = new Set(["salle", "cuisine"]);
-const ALLOWED_SLOTS = new Set(["morning", "afternoon", "full_day"]);
+const ALLOWED_SLOTS = new Set(["morning", "afternoon", "evening", "full_day"]);
+const SLOT_FR: Record<string, string> = {
+  morning: "matin",
+  afternoon: "après-midi",
+  evening: "soir",
+  full_day: "journée complète",
+};
 const MAX_AUDIO_BYTES = 50 * 1024 * 1024;
 
 function pad2(n: number) { return String(n).padStart(2, "0"); }
@@ -123,7 +129,7 @@ Deno.serve(async (req) => {
     const frameworkContent = framework?.content || "";
 
     const prompt = `Tu es l'assistant de Marwan, gérant des LPQ Victor Hugo et Marais.
-Le superviseur du PdV vient d'enregistrer un briefing audio post-service ${serviceDate} ${serviceSlot} (zone ${zone}).
+Le superviseur du PdV vient d'enregistrer un briefing audio post-service ${serviceDate} (${SLOT_FR[serviceSlot] || serviceSlot}, zone ${zone}).
 Transcris fidèlement l'audio en français, puis fais une synthèse structurée selon le canevas suivant :
 
 ${frameworkContent || "(pas de canevas configuré — fais une synthèse libre en bullets concises)"}

@@ -360,14 +360,85 @@
   }
   .vn-back { background: transparent; border: 1px solid var(--border);
     border-radius: 8px; padding: 6px 12px; font-size: 14px; cursor: pointer; }
-  .vn-bar h2 { margin: 0; font-size: 17px; }
-  .vn-form {
-    display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px;
+  .vn-bar h2 { margin: 0; font-size: 17px; flex: 1; }
+  .vn-bar .vn-progress {
+    font-size: 12px; color: var(--text-muted); font-weight: 600;
+    background: var(--surface-soft); padding: 4px 10px; border-radius: 999px;
   }
-  .vn-form select {
-    padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
-    font-size: 14px; background: var(--surface);
+  .vn-step { display: none; }
+  .vn-step.active { display: block; animation: vnFadeIn 0.18s ease; }
+  @keyframes vnFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .vn-step-question {
+    font-size: 22px; font-weight: 700; margin: 8px 0 18px;
+    color: var(--text); text-align: center;
   }
+  .vn-cards {
+    display: grid; gap: 12px;
+    grid-template-columns: 1fr;
+  }
+  .vn-cards.cols-2 { grid-template-columns: 1fr 1fr; }
+  .vn-cards.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .vn-card {
+    background: var(--surface); border: 2px solid var(--border);
+    border-radius: 16px; padding: 24px 14px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    box-shadow: var(--shadow); transition: all 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .vn-card:active { transform: scale(0.97); }
+  .vn-card:hover { border-color: var(--accent); }
+  .vn-card .vn-card-icon { font-size: 44px; line-height: 1; }
+  .vn-card .vn-card-label { font-size: 15px; font-weight: 600; text-align: center; color: var(--text); }
+  .vn-card .vn-card-sub { font-size: 12px; color: var(--text-muted); text-align: center; }
+  @media (max-width: 380px) {
+    .vn-cards.cols-3 { grid-template-columns: 1fr; }
+    .vn-card { padding: 18px 12px; }
+    .vn-card .vn-card-icon { font-size: 36px; }
+  }
+  .vn-back-step {
+    background: transparent; border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 14px; font-size: 13px; cursor: pointer;
+    margin-bottom: 14px; color: var(--text-muted);
+  }
+  .vn-day-picker {
+    margin-top: 18px; display: flex; flex-direction: column; gap: 10px;
+    background: var(--surface-soft); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px;
+  }
+  .vn-day-picker input[type="date"] {
+    width: 100%; padding: 14px 12px; font-size: 16px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    background: var(--surface); color: var(--text);
+  }
+  .vn-day-confirm {
+    width: 100%; padding: 14px; font-size: 15px; font-weight: 600;
+    background: var(--accent); color: #fff; border: none; border-radius: 10px;
+    cursor: pointer;
+  }
+  .vn-day-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
+  .vn-success {
+    margin-top: 18px; padding: 28px 18px; text-align: center;
+    background: var(--surface); border: 2px solid var(--success, #5d8c4f);
+    border-radius: 16px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .vn-success-icon { font-size: 56px; line-height: 1; }
+  .vn-success-title { font-size: 20px; font-weight: 700; color: var(--text); }
+  .vn-success-sub { font-size: 13px; color: var(--text-muted); }
+  .vn-success-btn {
+    margin-top: 10px; padding: 14px 28px; font-size: 15px; font-weight: 600;
+    background: var(--accent); color: #fff; border: none; border-radius: 10px;
+    cursor: pointer;
+  }
+  .vn-summary {
+    background: var(--surface-soft); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 14px;
+    font-size: 13px;
+  }
+  .vn-summary-row { display: flex; align-items: center; gap: 8px; }
+  .vn-summary-row .lab { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .vn-summary-row .val { font-weight: 600; color: var(--text); }
   .vn-canevas {
     background: var(--surface-soft); border: 1px solid var(--border);
     border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;
@@ -390,13 +461,79 @@
   }
   .vn-status { font-size: 13px; color: var(--text-muted); text-align: center; margin: 12px 0; }
   .vn-status.processing { color: var(--accent); font-weight: 600; }
-  .vn-result {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 10px; padding: 14px; margin-top: 14px;
+  .vn-notes-list {
+    display: flex; flex-direction: column; gap: 8px; margin: 14px 0;
   }
-  .vn-result h3 { margin: 0 0 8px; font-size: 14px; }
-  .vn-result pre { white-space: pre-wrap; margin: 0; font: inherit;
-    font-size: 13px; line-height: 1.5; color: var(--text); }
+  .vn-notes-list-title {
+    font-size: 11px; color: var(--text-muted); text-transform: uppercase;
+    letter-spacing: 0.4px; font-weight: 700;
+  }
+  .vn-note-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .vn-note-item .vn-note-ic { font-size: 18px; }
+  .vn-note-item .vn-note-meta { flex: 1; font-size: 13px; font-weight: 500; }
+  .vn-note-item .vn-note-meta .dur { color: var(--text-muted); font-weight: 400; font-size: 12px; }
+  .vn-note-item audio { width: 100%; height: 32px; }
+  .vn-note-item .vn-note-del {
+    background: transparent; border: none; font-size: 18px; color: var(--text-muted);
+    cursor: pointer; padding: 4px 8px;
+  }
+  .vn-note-item .vn-note-del:hover { color: var(--error); }
+  .vn-send-all {
+    width: 100%; padding: 18px; font-size: 16px; font-weight: 700;
+    background: var(--success, #5d8c4f); color: #fff; border: none; border-radius: 12px;
+    cursor: pointer; margin-top: 10px; box-shadow: var(--shadow);
+  }
+  .vn-send-all:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Wizard principal équipier — étapes Restaurant → Zone → Catégorie → Photo */
+  .main-step { display: none; }
+  .main-step.active { display: block; animation: vnFadeIn 0.18s ease; }
+  .main-step-question {
+    font-size: 22px; font-weight: 700; margin: 14px 0 18px;
+    color: var(--text); text-align: center;
+  }
+  .main-back-step {
+    background: transparent; border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 14px; font-size: 13px; cursor: pointer;
+    margin-bottom: 4px; color: var(--text-muted);
+  }
+  .main-cards {
+    display: grid; gap: 12px;
+    grid-template-columns: 1fr;
+  }
+  .main-cards.cols-2 { grid-template-columns: 1fr 1fr; }
+  .main-cards.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .main-card {
+    background: var(--surface); border: 2px solid var(--border);
+    border-radius: 16px; padding: 24px 14px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    box-shadow: var(--shadow); transition: all 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+    text-align: center; font-family: inherit; color: var(--text);
+  }
+  .main-card:active { transform: scale(0.97); }
+  .main-card:hover { border-color: var(--accent); }
+  .main-card .main-card-icon { font-size: 44px; line-height: 1; }
+  .main-card .main-card-label { font-size: 15px; font-weight: 600; color: var(--text); }
+  .main-card .main-card-sub { font-size: 12px; color: var(--text-muted); }
+  @media (max-width: 380px) {
+    .main-cards.cols-3 { grid-template-columns: 1fr; }
+    .main-card { padding: 18px 12px; }
+    .main-card .main-card-icon { font-size: 36px; }
+  }
+  .main-summary {
+    background: var(--surface-soft); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 14px; margin: 8px 0 14px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 14px;
+    font-size: 13px;
+  }
+  .main-summary-row { display: flex; flex-direction: column; gap: 2px; }
+  .main-summary-row .lab { color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .main-summary-row .val { font-weight: 600; color: var(--text); font-size: 13px; }
 
   /* Hidden file inputs */
   input[type=file] { display: none; }
@@ -445,48 +582,87 @@
   </header>
 
   <main>
-    <!-- Bouton superviseur : Note de service (visible si is_supervisor) -->
-    <button id="supervisor-cta" class="supervisor-cta hidden">
-      <span class="ic">🎙️</span>
-      <span class="tt">
-        <b>Note de service</b>
-        <span>Enregistre ton brief audio post-service</span>
-      </span>
-      <span class="ar">→</span>
-    </button>
+    <!-- ÉTAPE 1 — Accueil + choix restaurant -->
+    <div class="main-step active" id="main-step-pdv">
+      <button id="supervisor-cta" class="supervisor-cta hidden">
+        <span class="ic">🎙️</span>
+        <span class="tt">
+          <b>Note de service</b>
+          <span>Enregistre ton brief audio post-service</span>
+        </span>
+        <span class="ar">→</span>
+      </button>
 
-    <button id="notes-banner" class="notes-banner hidden">
-      <span class="icon">📩</span>
-      <span class="txt">
-        <b id="notes-banner-title">0 nouvelle remarque</b>
-        <span>Tape ici pour les lire</span>
-      </span>
-    </button>
+      <button id="notes-banner" class="notes-banner hidden">
+        <span class="icon">📩</span>
+        <span class="txt">
+          <b id="notes-banner-title">0 nouvelle remarque</b>
+          <span>Tape ici pour les lire</span>
+        </span>
+      </button>
 
-    <div class="pdv-row" id="pdv-row"></div>
-    <div id="cat-zones"></div>
-
-    <!-- Wizard mode — visible quand la cat sélectionnée a une séquence active -->
-    <div id="wizard-banner" class="wizard-banner hidden">
-      <div class="wizard-title">📋 Mode guidé</div>
-      <div class="wizard-subtitle" id="wizard-subtitle">—</div>
-      <div class="wizard-progress"><div class="wizard-progress-fill" id="wizard-progress-fill" style="width:0%"></div></div>
-      <div id="wizard-steps-list"></div>
-      <button class="wizard-quit" id="wizard-quit">Quitter le mode guidé (et passer en mode libre)</button>
+      <div class="main-step-question">Quel restaurant ?</div>
+      <div class="main-cards cols-2" id="main-pdv-cards"></div>
     </div>
 
-    <button id="preview-cta" class="preview-cta" aria-disabled="true">
-      <span class="cam-emoji">📷</span>
-      <span class="cam-title" id="cta-title">Prendre une photo</span>
-      <span class="cam-hint" id="cta-hint">Choisis d'abord un restaurant et un type</span>
-    </button>
+    <!-- ÉTAPE 2 — Zone -->
+    <div class="main-step" id="main-step-zone">
+      <button class="main-back-step" data-go-step="pdv">← Restaurant</button>
+      <div class="main-step-question">Où es-tu ?</div>
+      <div class="main-cards cols-3">
+        <button class="main-card" data-zone-value="salle">
+          <span class="main-card-icon">🪑</span>
+          <span class="main-card-label">Salle</span>
+        </button>
+        <button class="main-card" data-zone-value="comptoir">
+          <span class="main-card-icon">🥐</span>
+          <span class="main-card-label">Comptoir</span>
+        </button>
+        <button class="main-card" data-zone-value="cuisine">
+          <span class="main-card-icon">🍳</span>
+          <span class="main-card-label">Cuisine</span>
+        </button>
+      </div>
+    </div>
 
-    <div id="batch-view" class="batch-view hidden">
-      <div class="batch-summary" id="batch-summary"></div>
-      <div class="photo-thumb" id="batch-thumb"></div>
-      <div class="btn-row">
-        <button class="btn btn-secondary" id="batch-cancel">Annuler</button>
-        <button class="btn btn-success" id="batch-send">Envoyer</button>
+    <!-- ÉTAPE 3 — Catégorie (rendue dynamiquement selon zone) -->
+    <div class="main-step" id="main-step-category">
+      <button class="main-back-step" data-go-step="zone">← Zone</button>
+      <div class="main-step-question">Que documenter ?</div>
+      <div class="main-cards" id="main-category-cards"></div>
+    </div>
+
+    <!-- ÉTAPE 4 — Photo (récap + CTA + batch) -->
+    <div class="main-step" id="main-step-photo">
+      <button class="main-back-step" data-go-step="category">← Catégorie</button>
+      <div class="main-summary">
+        <div class="main-summary-row"><span class="lab">Restaurant</span><span class="val" id="main-sum-pdv">—</span></div>
+        <div class="main-summary-row"><span class="lab">Zone</span><span class="val" id="main-sum-zone">—</span></div>
+        <div class="main-summary-row"><span class="lab">Catégorie</span><span class="val" id="main-sum-cat">—</span></div>
+      </div>
+
+      <!-- Wizard mode séquences — visible si une séquence est active sur (pdv, cat) -->
+      <div id="wizard-banner" class="wizard-banner hidden">
+        <div class="wizard-title">📋 Mode guidé</div>
+        <div class="wizard-subtitle" id="wizard-subtitle">—</div>
+        <div class="wizard-progress"><div class="wizard-progress-fill" id="wizard-progress-fill" style="width:0%"></div></div>
+        <div id="wizard-steps-list"></div>
+        <button class="wizard-quit" id="wizard-quit">Quitter le mode guidé</button>
+      </div>
+
+      <button id="preview-cta" class="preview-cta">
+        <span class="cam-emoji">📷</span>
+        <span class="cam-title" id="cta-title">Prendre une photo</span>
+        <span class="cam-hint" id="cta-hint">—</span>
+      </button>
+
+      <div id="batch-view" class="batch-view hidden">
+        <div class="batch-summary" id="batch-summary"></div>
+        <div class="photo-thumb" id="batch-thumb"></div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="batch-cancel">Annuler</button>
+          <button class="btn btn-success" id="batch-send">Envoyer</button>
+        </div>
       </div>
     </div>
 
@@ -501,33 +677,105 @@
   <div class="vn-bar">
     <button class="vn-back" id="vn-back">←</button>
     <h2>🎙️ Note de service</h2>
+    <span class="vn-progress" id="vn-progress">1 / 5</span>
   </div>
-  <div class="vn-form">
-    <select id="vn-pdv">
-      <option value="vh">Le Pain Quotidien Victor Hugo</option>
-      <option value="marais">Le Pain Quotidien Marais</option>
-    </select>
-    <select id="vn-zone">
-      <option value="cuisine">🍳 Zone Cuisine</option>
-      <option value="salle">🪑 Zone Salle</option>
-    </select>
-    <select id="vn-slot">
-      <option value="morning">Matin</option>
-      <option value="afternoon">Après-midi</option>
-      <option value="full_day">Journée complète</option>
-    </select>
+
+  <!-- Étape 1 — Restaurant -->
+  <div class="vn-step active" id="vn-step-pdv" data-step="0">
+    <div class="vn-step-question">Quel restaurant ?</div>
+    <div class="vn-cards cols-2">
+      <div class="vn-card" data-step-value="vh">
+        <div class="vn-card-icon">🏛️</div>
+        <div class="vn-card-label">Victor Hugo</div>
+        <div class="vn-card-sub">LPQ Paris 16e</div>
+      </div>
+      <div class="vn-card" data-step-value="marais">
+        <div class="vn-card-icon">⛲</div>
+        <div class="vn-card-label">Marais</div>
+        <div class="vn-card-sub">LPQ Paris 4e</div>
+      </div>
+    </div>
   </div>
-  <div class="vn-canevas" id="vn-canevas">
-    <h4 id="vn-canevas-title">Canevas</h4>
-    <pre id="vn-canevas-content">Chargement...</pre>
+
+  <!-- Étape 2 — Type de poste (zone) -->
+  <div class="vn-step" id="vn-step-zone" data-step="1">
+    <button class="vn-back-step" data-go-back="0">← Restaurant</button>
+    <div class="vn-step-question">Quel poste ?</div>
+    <div class="vn-cards cols-2">
+      <div class="vn-card" data-step-value="cuisine">
+        <div class="vn-card-icon">🍳</div>
+        <div class="vn-card-label">Cuisine</div>
+        <div class="vn-card-sub">Côté préparation</div>
+      </div>
+      <div class="vn-card" data-step-value="salle">
+        <div class="vn-card-icon">🪑</div>
+        <div class="vn-card-label">Salle</div>
+        <div class="vn-card-sub">Côté client</div>
+      </div>
+    </div>
   </div>
-  <button class="vn-rec-btn" id="vn-rec-btn">🎙️ Démarrer l'enregistrement</button>
-  <div class="vn-status" id="vn-status"></div>
-  <div class="vn-result hidden" id="vn-result">
-    <h3>📝 Synthèse</h3>
-    <pre id="vn-result-synthesis"></pre>
-    <h3 style="margin-top:14px;">📜 Transcription brute</h3>
-    <pre id="vn-result-raw"></pre>
+
+  <!-- Étape 3 — Jour -->
+  <div class="vn-step" id="vn-step-day" data-step="2">
+    <button class="vn-back-step" data-go-back="1">← Poste</button>
+    <div class="vn-step-question">Quel jour ?</div>
+    <div class="vn-cards cols-3">
+      <div class="vn-card" data-step-value="today">
+        <div class="vn-card-icon">📅</div>
+        <div class="vn-card-label">Aujourd'hui</div>
+        <div class="vn-card-sub" id="vn-day-today-date">—</div>
+      </div>
+      <div class="vn-card" data-step-value="yesterday">
+        <div class="vn-card-icon">🕐</div>
+        <div class="vn-card-label">Hier</div>
+        <div class="vn-card-sub" id="vn-day-yesterday-date">—</div>
+      </div>
+      <div class="vn-card" data-step-value="other">
+        <div class="vn-card-icon">🗓️</div>
+        <div class="vn-card-label">Autre jour</div>
+        <div class="vn-card-sub">Choisir</div>
+      </div>
+    </div>
+    <div class="vn-day-picker hidden" id="vn-day-picker">
+      <input type="date" id="vn-day-input">
+      <button class="vn-day-confirm" id="vn-day-confirm" disabled>Continuer →</button>
+    </div>
+  </div>
+
+  <!-- Étape 4 — Service (cards rendues dynamiquement selon PdV+Zone) -->
+  <div class="vn-step" id="vn-step-slot" data-step="3">
+    <button class="vn-back-step" data-go-back="2">← Jour</button>
+    <div class="vn-step-question">Quel service ?</div>
+    <div class="vn-cards" id="vn-slot-cards"></div>
+  </div>
+
+  <!-- Étape 5 — Récap + enregistrement -->
+  <div class="vn-step" id="vn-step-record" data-step="4">
+    <button class="vn-back-step" data-go-back="3">← Service</button>
+    <div class="vn-step-question">Prêt à enregistrer</div>
+    <div class="vn-summary">
+      <div class="vn-summary-row"><span class="lab">Restaurant</span><span class="val" id="vn-sum-pdv">—</span></div>
+      <div class="vn-summary-row"><span class="lab">Poste</span><span class="val" id="vn-sum-zone">—</span></div>
+      <div class="vn-summary-row"><span class="lab">Jour</span><span class="val" id="vn-sum-day">—</span></div>
+      <div class="vn-summary-row"><span class="lab">Service</span><span class="val" id="vn-sum-slot">—</span></div>
+    </div>
+    <div class="vn-canevas" id="vn-canevas">
+      <h4 id="vn-canevas-title">Canevas</h4>
+      <pre id="vn-canevas-content">Chargement...</pre>
+    </div>
+    <div class="vn-notes-list hidden" id="vn-notes-list">
+      <div class="vn-notes-list-title" id="vn-notes-list-title">Notes enregistrées</div>
+      <div id="vn-notes-list-items"></div>
+    </div>
+    <button class="vn-rec-btn" id="vn-rec-btn">🎙️ Démarrer l'enregistrement</button>
+    <button class="vn-send-all hidden" id="vn-send-all" disabled>✅ Tout envoyer</button>
+    <div class="vn-status" id="vn-status"></div>
+    <div class="vn-success hidden" id="vn-success">
+      <div class="vn-success-icon">✅</div>
+      <div class="vn-success-title">Notes envoyées</div>
+      <div class="vn-success-sub">Marwan les consultera dans son dashboard.</div>
+      <button class="vn-success-btn" id="vn-success-done">Terminé</button>
+    </div>
   </div>
 </div>
 
@@ -660,15 +908,32 @@
     location.reload();
   });
 
-  // -------- MAIN VIEW --------
+  // -------- MAIN VIEW (wizard 4 étapes) --------
+  let mainStep = 'pdv';
+  let selectedZone = null;
+  const MAIN_STEPS = ['pdv', 'zone', 'category', 'photo'];
+
+  function zoneOfCategory(catKey) {
+    return (STATIONS.zones || []).find(z => z.categories.includes(catKey))?.key || null;
+  }
+  function zoneLabel(zoneKey) {
+    return (STATIONS.zones || []).find(z => z.key === zoneKey)?.label || zoneKey;
+  }
+  function pdvShort(k) {
+    return STATIONS.pdv[k]?.replace('Le Pain Quotidien ', '') || k;
+  }
+
   function enterMain() {
     $("view-login").classList.add("hidden");
     $("view-main").classList.remove("hidden");
     const staff = RiseAPI.getStaff();
     $("who-name").textContent = staff?.name || "—";
-    // Deep-link QR : ?pdv=vh&category=terrasse pré-sélectionne
-    applyQrDeepLink();
-    renderPickers();
+    renderMainPdvCards();
+    // Deep-link QR : ?pdv=vh&category=terrasse pré-sélectionne et saute aux étapes correspondantes
+    const deep = applyQrDeepLink();
+    if (deep === 'photo') goToMainStep('photo');
+    else if (deep === 'zone') goToMainStep('zone');
+    else goToMainStep('pdv');
     refreshUnreadCount();
     showVoicenoteIfSupervisor();
   }
@@ -678,94 +943,105 @@
       const sp = new URL(location.href).searchParams;
       const pdv = sp.get("pdv");
       const cat = sp.get("category");
-      if (pdv && STATIONS.pdv[pdv]) selectedPdv = pdv;
-      if (cat && STATIONS.categories[cat]) selectedCat = cat;
-      if (pdv || cat) {
-        // Nettoie l'URL pour ne pas relire à chaque login
-        history.replaceState({}, "", location.pathname);
+      let target = 'pdv';
+      if (pdv && STATIONS.pdv[pdv]) {
+        selectedPdv = pdv;
+        target = 'zone';
       }
-    } catch {}
-  }
-
-  function renderPickers() {
-    // PdV row
-    const pdvRow = $("pdv-row");
-    pdvRow.innerHTML = "";
-    Object.entries(STATIONS.pdv).forEach(([k, label]) => {
-      const b = document.createElement('button');
-      b.className = 'pdv-btn' + (selectedPdv === k ? ' active' : '');
-      b.innerHTML = `<span class="pdv-emoji">${STATIONS.pdv_emoji[k] || ''}</span><span class="pdv-label">${escapeHtml(label.replace('Le Pain Quotidien ', ''))}</span>`;
-      b.addEventListener('click', () => { selectedPdv = k; renderPickers(); updateCta(); });
-      pdvRow.appendChild(b);
-    });
-    // Catégories groupées par zone (Salle / Comptoir / Cuisine)
-    const zonesEl = $("cat-zones");
-    zonesEl.innerHTML = "";
-    const zones = STATIONS.zones || [];
-    const used = new Set();
-    zones.forEach((z) => {
-      const block = document.createElement("div");
-      block.className = "zone-block";
-      const header = document.createElement("div");
-      header.className = "zone-header";
-      header.innerHTML = `<span>${z.emoji}</span><span>${escapeHtml(z.label)}</span>`;
-      block.appendChild(header);
-      const grid = document.createElement("div");
-      grid.className = "cat-grid";
-      z.categories.forEach((k) => {
-        const label = STATIONS.categories[k];
-        if (!label) return;
-        used.add(k);
-        const b = document.createElement("button");
-        const enabled = !!selectedPdv;
-        b.className = "cat-btn" + (enabled ? " enabled" : "") + (selectedCat === k ? " active" : "");
-        b.innerHTML = `<span class="cat-emoji">${STATIONS.category_emoji[k] || ""}</span><span class="cat-label">${escapeHtml(label)}</span>`;
-        b.addEventListener("click", () => {
-          if (!enabled) { toast("Choisis un PdV d'abord"); return; }
-          selectedCat = k; renderPickers(); updateCta();
-        });
-        grid.appendChild(b);
-      });
-      block.appendChild(grid);
-      zonesEl.appendChild(block);
-    });
-    // Ajout des catégories non listées dans une zone (fallback)
-    const orphans = Object.entries(STATIONS.categories).filter(([k]) => !used.has(k));
-    if (orphans.length > 0) {
-      const grid = document.createElement("div");
-      grid.className = "cat-grid";
-      orphans.forEach(([k, label]) => {
-        const b = document.createElement("button");
-        const enabled = !!selectedPdv;
-        b.className = "cat-btn" + (enabled ? " enabled" : "") + (selectedCat === k ? " active" : "");
-        b.innerHTML = `<span class="cat-emoji">${STATIONS.category_emoji[k] || ""}</span><span class="cat-label">${escapeHtml(label)}</span>`;
-        b.addEventListener("click", () => {
-          if (!enabled) { toast("Choisis un PdV d'abord"); return; }
-          selectedCat = k; renderPickers(); updateCta();
-        });
-        grid.appendChild(b);
-      });
-      zonesEl.appendChild(grid);
+      if (cat && STATIONS.categories[cat]) {
+        selectedCat = cat;
+        selectedZone = zoneOfCategory(cat);
+        if (selectedPdv && selectedZone) target = 'photo';
+      }
+      if (pdv || cat) history.replaceState({}, "", location.pathname);
+      return target;
+    } catch {
+      return 'pdv';
     }
-    updateCta();
   }
 
-  function updateCta() {
-    const cta = $("preview-cta");
-    if (selectedPdv && selectedCat) {
-      cta.classList.add("ready");
-      cta.setAttribute("aria-disabled", "false");
-      const pdvLabel = STATIONS.pdv[selectedPdv]?.replace('Le Pain Quotidien ', '');
-      $("cta-hint").textContent = `${pdvLabel} · ${STATIONS.categories[selectedCat]}`;
-      // Sprint TS-15 — Vérifie si la combinaison a une séquence wizard active
-      loadSequence(selectedPdv, selectedCat);
-    } else {
-      cta.classList.remove("ready");
-      cta.setAttribute("aria-disabled", "true");
-      $("cta-hint").textContent = "Choisis d'abord un restaurant et un type";
+  function goToMainStep(name) {
+    mainStep = name;
+    MAIN_STEPS.forEach(n => {
+      $(`main-step-${n}`).classList.toggle('active', n === name);
+    });
+    if (name === 'pdv') {
+      // Reset si retour à l'accueil
+      selectedPdv = null; selectedZone = null; selectedCat = null;
       hideWizard();
+    } else if (name === 'category') {
+      renderMainCategoryCards(selectedZone);
+    } else if (name === 'photo') {
+      renderMainPhotoSummary();
     }
   }
+
+  function renderMainPdvCards() {
+    const c = $("main-pdv-cards");
+    c.innerHTML = "";
+    Object.entries(STATIONS.pdv).forEach(([k, label]) => {
+      const card = document.createElement('button');
+      card.className = "main-card";
+      card.innerHTML = `
+        <span class="main-card-icon">${STATIONS.pdv_emoji[k] || ''}</span>
+        <span class="main-card-label">${escapeHtml(label.replace('Le Pain Quotidien ', ''))}</span>
+      `;
+      card.addEventListener('click', () => {
+        selectedPdv = k;
+        goToMainStep('zone');
+      });
+      c.appendChild(card);
+    });
+  }
+
+  document.querySelectorAll('#main-step-zone .main-card[data-zone-value]').forEach(card => {
+    card.addEventListener('click', () => {
+      selectedZone = card.dataset.zoneValue;
+      goToMainStep('category');
+    });
+  });
+
+  function renderMainCategoryCards(zoneKey) {
+    const cont = $("main-category-cards");
+    cont.innerHTML = "";
+    const z = (STATIONS.zones || []).find(z => z.key === zoneKey);
+    if (!z) return;
+    // Layout : 2 cats = cols-2 ; 3 cats = cols-3 ; 4 cats = cols-2 (grille 2x2)
+    const n = z.categories.length;
+    cont.className = 'main-cards' + (n === 3 ? ' cols-3' : ' cols-2');
+    z.categories.forEach(catKey => {
+      const label = STATIONS.categories[catKey];
+      if (!label) return;
+      const card = document.createElement('button');
+      card.className = "main-card";
+      card.innerHTML = `
+        <span class="main-card-icon">${STATIONS.category_emoji[catKey] || ''}</span>
+        <span class="main-card-label">${escapeHtml(label)}</span>
+      `;
+      card.addEventListener('click', () => {
+        selectedCat = catKey;
+        goToMainStep('photo');
+      });
+      cont.appendChild(card);
+    });
+  }
+
+  function renderMainPhotoSummary() {
+    $("main-sum-pdv").textContent = pdvShort(selectedPdv);
+    $("main-sum-zone").textContent = zoneLabel(selectedZone);
+    $("main-sum-cat").textContent = STATIONS.categories[selectedCat] || '—';
+    $("cta-hint").textContent = "Tape pour ouvrir l'appareil photo";
+    $("preview-cta").classList.add("ready");
+    $("preview-cta").setAttribute("aria-disabled", "false");
+    $("preview-cta").classList.remove("hidden");
+    $("batch-view").classList.add("hidden");
+    loadSequence(selectedPdv, selectedCat);
+  }
+
+  // Boutons retour entre étapes
+  document.querySelectorAll('.main-back-step').forEach(btn => {
+    btn.addEventListener('click', () => goToMainStep(btn.dataset.goStep));
+  });
 
   // Sprint TS-15 — Wizard sequences
   async function loadSequence(pdv, category) {
@@ -852,8 +1128,6 @@
 
   function showBatchView() {
     $("preview-cta").classList.add("hidden");
-    $("pdv-row").classList.add("hidden");
-    $("cat-zones").classList.add("hidden");
     $("wizard-banner").classList.add("hidden");
     const bv = $("batch-view");
     bv.classList.remove("hidden");
@@ -875,8 +1149,6 @@
     $("file-input").value = "";
     $("batch-view").classList.add("hidden");
     if (!currentSequence) $("preview-cta").classList.remove("hidden");
-    $("pdv-row").classList.remove("hidden");
-    $("cat-zones").classList.remove("hidden");
     if (currentSequence) $("wizard-banner").classList.remove("hidden");
   });
 
@@ -906,8 +1178,6 @@
       $("batch-view").classList.add("hidden");
       // Si on est en wizard mode, on ne ré-affiche pas preview-cta
       if (!currentSequence) $("preview-cta").classList.remove("hidden");
-      $("pdv-row").classList.remove("hidden");
-      $("cat-zones").classList.remove("hidden");
       if (currentSequence) $("wizard-banner").classList.remove("hidden");
       $("batch-send").disabled = false;
       $("batch-send").textContent = "Envoyer";
@@ -1075,10 +1345,36 @@
     }
   }
 
-  // -------- VOICENOTE (superviseur) --------
+  // -------- VOICENOTE (superviseur) — wizard 5 étapes --------
   let mediaRecorder = null;
   let audioChunks = [];
   let recordStartTime = 0;
+  let accumulatedNotes = []; // { id, blob, durationSec }
+  let isSending = false;
+
+  const VN_STEPS = ['pdv', 'zone', 'day', 'slot', 'record'];
+  const wizardState = { pdv: null, zone: null, day: null, slot: null };
+
+  const PDV_LABELS = { vh: '🏛️ Victor Hugo', marais: '⛲ Marais' };
+  const ZONE_LABELS = { cuisine: '🍳 Cuisine', salle: '🪑 Salle' };
+  const SLOT_LABELS = { morning: '☀️ Matin', evening: '🌙 Soir' };
+  const SLOT_ICONS  = { morning: '☀️', evening: '🌙' };
+
+  // Règle métier : services dispo selon (pdv, zone)
+  function availableSlots(pdv, zone) {
+    if (pdv === 'marais' && zone === 'salle') return ['morning', 'evening'];
+    return ['morning'];
+  }
+
+  function isoDate(offsetDays = 0) {
+    const d = new Date();
+    d.setDate(d.getDate() + offsetDays);
+    return d.toISOString().slice(0, 10);
+  }
+  function frenchDate(iso) {
+    const d = new Date(iso + 'T00:00:00');
+    return d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+  }
 
   function showVoicenoteIfSupervisor() {
     const staff = RiseAPI.getStaff();
@@ -1088,17 +1384,116 @@
   }
   $("supervisor-cta").addEventListener('click', openVoicenote);
   $("vn-back").addEventListener('click', closeVoicenote);
-  $("vn-zone").addEventListener('change', loadFrameworkForZone);
+  $("vn-success-done").addEventListener('click', closeVoicenote);
 
-  function openVoicenote() {
-    $("view-main").classList.add("hidden");
-    $("view-voicenote").classList.remove("hidden");
-    $("vn-result").classList.add("hidden");
+  function vnGoToStep(idx) {
+    VN_STEPS.forEach((name, i) => {
+      $(`vn-step-${name}`).classList.toggle('active', i === idx);
+    });
+    $("vn-progress").textContent = `${idx + 1} / ${VN_STEPS.length}`;
+    const stepName = VN_STEPS[idx];
+    if (stepName === 'day') vnRenderDayStep();
+    if (stepName === 'slot') vnRenderSlotStep();
+    if (stepName === 'record') vnRenderRecordStep();
+  }
+
+  function vnRenderDayStep() {
+    $("vn-day-picker").classList.add("hidden");
+    $("vn-day-input").value = "";
+    $("vn-day-confirm").disabled = true;
+  }
+
+  function vnRenderSlotStep() {
+    const slots = availableSlots(wizardState.pdv, wizardState.zone);
+    const cont = $("vn-slot-cards");
+    cont.className = 'vn-cards' + (slots.length >= 2 ? ' cols-2' : '');
+    cont.innerHTML = slots.map(s => `
+      <div class="vn-card" data-slot-value="${s}">
+        <div class="vn-card-icon">${SLOT_ICONS[s]}</div>
+        <div class="vn-card-label">${SLOT_LABELS[s].replace(/^[^ ]+ /, '')}</div>
+      </div>
+    `).join('');
+    cont.querySelectorAll('.vn-card').forEach(card => {
+      card.addEventListener('click', () => {
+        wizardState.slot = card.dataset.slotValue;
+        vnGoToStep(VN_STEPS.indexOf('slot') + 1);
+      });
+    });
+  }
+
+  function vnRenderRecordStep() {
+    $("vn-sum-pdv").textContent = PDV_LABELS[wizardState.pdv] || '—';
+    $("vn-sum-zone").textContent = ZONE_LABELS[wizardState.zone] || '—';
+    $("vn-sum-day").textContent = wizardState.day ? frenchDate(wizardState.day) : '—';
+    $("vn-sum-slot").textContent = SLOT_LABELS[wizardState.slot] || '—';
+    loadFrameworkForZone();
+  }
+
+  // Click delegation : sélection d'une carte → enregistre + step suivant
+  // Note : les cards de l'étape "slot" sont générées dynamiquement (handler dans vnRenderSlotStep)
+  ['pdv', 'zone', 'day'].forEach(stepName => {
+    const stepIdx = VN_STEPS.indexOf(stepName);
+    document.querySelectorAll(`#vn-step-${stepName} > .vn-cards > .vn-card`).forEach(card => {
+      card.addEventListener('click', () => {
+        const value = card.dataset.stepValue;
+        if (stepName === 'day') {
+          if (value === 'today') { wizardState.day = isoDate(0); vnGoToStep(stepIdx + 1); }
+          else if (value === 'yesterday') { wizardState.day = isoDate(-1); vnGoToStep(stepIdx + 1); }
+          else if (value === 'other') {
+            $("vn-day-picker").classList.remove("hidden");
+            $("vn-day-input").focus();
+          }
+        } else {
+          wizardState[stepName] = value;
+          vnGoToStep(stepIdx + 1);
+        }
+      });
+    });
+  });
+
+  // Calendrier "Autre jour"
+  $("vn-day-input").addEventListener('input', () => {
+    $("vn-day-confirm").disabled = !$("vn-day-input").value;
+  });
+  $("vn-day-confirm").addEventListener('click', () => {
+    const v = $("vn-day-input").value;
+    if (!v) return;
+    wizardState.day = v;
+    vnGoToStep(VN_STEPS.indexOf('day') + 1);
+  });
+
+  // Boutons retour entre étapes
+  document.querySelectorAll('.vn-back-step').forEach(btn => {
+    btn.addEventListener('click', () => vnGoToStep(parseInt(btn.dataset.goBack, 10)));
+  });
+
+  function vnReset() {
+    wizardState.pdv = null;
+    wizardState.zone = null;
+    wizardState.day = null;
+    wizardState.slot = null;
+    $("vn-success").classList.add("hidden");
     $("vn-status").textContent = "";
     $("vn-rec-btn").disabled = false;
     $("vn-rec-btn").textContent = "🎙️ Démarrer l'enregistrement";
     $("vn-rec-btn").classList.remove("recording");
-    loadFrameworkForZone();
+    $("vn-rec-btn").classList.remove("hidden");
+    accumulatedNotes = [];
+    isSending = false;
+    renderNotesList();
+    $("vn-day-today-date").textContent = frenchDate(isoDate(0));
+    $("vn-day-yesterday-date").textContent = frenchDate(isoDate(-1));
+    $("vn-day-input").max = isoDate(0);
+    $("vn-day-input").value = "";
+    $("vn-day-confirm").disabled = true;
+    $("vn-day-picker").classList.add("hidden");
+    vnGoToStep(0);
+  }
+
+  function openVoicenote() {
+    $("view-main").classList.add("hidden");
+    $("view-voicenote").classList.remove("hidden");
+    vnReset();
   }
   function closeVoicenote() {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
@@ -1108,9 +1503,39 @@
     $("view-voicenote").classList.add("hidden");
     $("view-main").classList.remove("hidden");
   }
+  function renderNotesList() {
+    const N = accumulatedNotes.length;
+    $("vn-notes-list").classList.toggle("hidden", N === 0);
+    $("vn-notes-list-title").textContent = `Notes enregistrées (${N})`;
+    const items = $("vn-notes-list-items");
+    items.innerHTML = "";
+    accumulatedNotes.forEach((n, i) => {
+      const url = URL.createObjectURL(n.blob);
+      const div = document.createElement('div');
+      div.className = "vn-note-item";
+      div.innerHTML = `
+        <span class="vn-note-ic">🎵</span>
+        <div class="vn-note-meta">Note ${i + 1} <span class="dur">· ${n.durationSec}s</span></div>
+        <audio controls src="${url}"></audio>
+        <button class="vn-note-del" data-note-id="${n.id}" title="Supprimer">✕</button>
+      `;
+      items.appendChild(div);
+    });
+    items.querySelectorAll('.vn-note-del').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = parseInt(btn.dataset.noteId, 10);
+        accumulatedNotes = accumulatedNotes.filter(x => x.id !== id);
+        renderNotesList();
+      });
+    });
+    $("vn-send-all").classList.toggle("hidden", N === 0);
+    $("vn-send-all").disabled = N === 0 || isSending;
+    $("vn-send-all").textContent = `✅ Tout envoyer (${N})`;
+  }
+
   async function loadFrameworkForZone() {
-    const zone = $("vn-zone").value;
-    $("vn-canevas-title").textContent = `Canevas — ${zone === 'cuisine' ? '🍳 Cuisine' : '🪑 Salle'}`;
+    const zone = wizardState.zone;
+    $("vn-canevas-title").textContent = `Canevas — ${ZONE_LABELS[zone] || zone}`;
     $("vn-canevas-content").textContent = "Chargement...";
     try {
       const r = await RiseAPI.getFramework(zone);
@@ -1130,55 +1555,63 @@
         mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunks.push(e.data); };
         mediaRecorder.start();
         recordStartTime = Date.now();
-        $("vn-rec-btn").textContent = "■ Arrêter et envoyer";
+        $("vn-rec-btn").textContent = "■ Arrêter";
         $("vn-rec-btn").classList.add("recording");
         $("vn-status").textContent = "Enregistrement en cours...";
-        $("vn-status").classList.remove("processing");
+        $("vn-send-all").disabled = true;
       } catch (e) {
         toast("Microphone non autorisé : " + (e.message || ""), "error");
       }
     } else {
-      // Arrêter et upload
+      // Arrêter → ajouter à la liste (pas d'envoi immédiat)
       mediaRecorder.stop();
       mediaRecorder.stream?.getTracks().forEach(t => t.stop());
       $("vn-rec-btn").classList.remove("recording");
-      $("vn-rec-btn").disabled = true;
       const duration = Math.round((Date.now() - recordStartTime) / 1000);
-      $("vn-status").classList.add("processing");
-      $("vn-status").textContent = `Enregistrement de ${duration}s — transcription en cours (peut prendre 30-60s)...`;
-
-      // Wait pour le dernier chunk
       await new Promise(res => mediaRecorder.addEventListener('stop', res, { once: true }));
       const blob = new Blob(audioChunks, { type: "audio/webm" });
+      mediaRecorder = null;
+      accumulatedNotes.push({ id: Date.now(), blob, durationSec: duration });
+      $("vn-status").textContent = "";
+      $("vn-rec-btn").textContent = "🎙️ Ajouter une autre note";
+      renderNotesList();
+    }
+  });
 
+  $("vn-send-all").addEventListener('click', async () => {
+    if (accumulatedNotes.length === 0 || isSending) return;
+    isSending = true;
+    $("vn-send-all").disabled = true;
+    $("vn-rec-btn").disabled = true;
+    $("vn-status").classList.add("processing");
+    const total = accumulatedNotes.length;
+    let okCount = 0;
+    for (let i = 0; i < total; i++) {
+      $("vn-status").textContent = `Envoi ${i + 1} / ${total} — transcription en cours...`;
       try {
-        const today = new Date().toISOString().slice(0, 10);
         const r = await RiseAPI.createVoiceBriefing({
-          pdv: $("vn-pdv").value,
-          zone: $("vn-zone").value,
-          serviceDate: today,
-          serviceSlot: $("vn-slot").value,
-          audioBlob: blob,
+          pdv: wizardState.pdv,
+          zone: wizardState.zone,
+          serviceDate: wizardState.day,
+          serviceSlot: wizardState.slot,
+          audioBlob: accumulatedNotes[i].blob,
         });
-        $("vn-status").textContent = "";
-        $("vn-status").classList.remove("processing");
-        if (r.ok) {
-          $("vn-result").classList.remove("hidden");
-          $("vn-result-synthesis").textContent = r.synthesis || "(pas de synthèse)";
-          $("vn-result-raw").textContent = r.raw_transcription || "(pas de transcription)";
-          toast("Note vocale traitée ✓", "success");
-        } else {
-          toast("Erreur transcription : " + (r.error || "?"), "error");
-        }
-      } catch (e) {
-        $("vn-status").classList.remove("processing");
-        $("vn-status").textContent = "";
-        toast("Erreur upload : " + (e.message || "?"), "error");
-      } finally {
-        $("vn-rec-btn").disabled = false;
-        $("vn-rec-btn").textContent = "🎙️ Nouvel enregistrement";
-        mediaRecorder = null;
-      }
+        if (r.ok) okCount++;
+      } catch (e) { /* continue avec les autres */ }
+    }
+    $("vn-status").classList.remove("processing");
+    $("vn-status").textContent = "";
+    if (okCount === total) {
+      $("vn-rec-btn").classList.add("hidden");
+      $("vn-send-all").classList.add("hidden");
+      $("vn-notes-list").classList.add("hidden");
+      $("vn-success").classList.remove("hidden");
+      toast(`${okCount} note${okCount > 1 ? 's' : ''} envoyée${okCount > 1 ? 's' : ''} ✓`, "success");
+    } else {
+      isSending = false;
+      $("vn-rec-btn").disabled = false;
+      $("vn-send-all").disabled = false;
+      toast(`${okCount}/${total} envoyée${okCount > 1 ? 's' : ''} — réessaie pour les autres`, "error");
     }
   });
 
